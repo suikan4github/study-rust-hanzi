@@ -1,0 +1,16 @@
+[package]
+name = "study-rust-kanji"
+version = "0.1.0"
+edition = "2024"
+description = "漢字学習のためのRustプログラム"
+
+[lib]
+name = "study_rust_kanji"
+path = "src/lib.rs"
+
+[[bin]]
+name = "study-rust-kanji"
+path = "src/main.rs"
+
+[dependencies]
+clap = { version = "4.0", features = ["derive"] }
