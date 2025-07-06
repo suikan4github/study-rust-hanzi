@@ -1,6 +1,7 @@
 use clap::Parser;
 use study_rust_kanji::read_hanzi_file;
 use std::collections::HashMap;
+use std::io::Write;
 
 /// Hanzi learning program
 #[derive(Parser)]
@@ -35,7 +36,9 @@ fn process_by_pinyin() {
             
             for (pinyin, characters) in sorted_pinyins {
                 let char_list = characters.join("");
-                println!("{:<5}: {:3} {}", pinyin, characters.len(), char_list);
+                if let Err(_) = writeln!(std::io::stdout(), "{:<5}: {:3} {}", pinyin, characters.len(), char_list) {
+                    break; // Broken pipe handling: exit quietly when pipe is closed
+                }
             }
         }
         Err(e) => {
