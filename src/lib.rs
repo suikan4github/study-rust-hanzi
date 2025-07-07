@@ -105,7 +105,7 @@ pub fn read_hanzi_file(file_path: &str) -> std::io::Result<Vec<HanziRecord>> {
 /// Takes Vec<HanziRecord> and examines pinyin_without_tone of all records.
 /// If that field starts with any of the string representations of HanziOnset,
 /// sets that HanziOnset value to the onset field. If none match, sets none.
-pub fn set_hanzi_onsets(records: &mut Vec<HanziRecord>) {
+pub fn set_hanzi_onsets(records: &mut [HanziRecord]) {
     for record in records.iter_mut() {
         let pinyin = &record.pinyin_without_tone;
         record.onset = if pinyin.starts_with("zh") {
@@ -164,7 +164,7 @@ pub fn set_hanzi_onsets(records: &mut Vec<HanziRecord>) {
 /// If that field does not match the string representation of the onset field
 /// combined with any HanziRime value's string representation exactly,
 /// sets that HanziRime value to the rime field.
-pub fn set_hanzi_rime(records: &mut Vec<HanziRecord>) {
+pub fn set_hanzi_rime(records: &mut [HanziRecord]) {
     for record in records.iter_mut() {
         let pinyin = &record.pinyin_without_tone;
 
@@ -199,8 +199,8 @@ pub fn set_hanzi_rime(records: &mut Vec<HanziRecord>) {
         // Extract rime part excluding onset
         let rime_part = if onset_str.is_empty() {
             pinyin.as_str()
-        } else if pinyin.starts_with(onset_str) {
-            &pinyin[onset_str.len()..]
+        } else if let Some(stripped) = pinyin.strip_prefix(onset_str) {
+            stripped
         } else {
             // If onset doesn't match, treat the whole string as rime part
             pinyin.as_str()
