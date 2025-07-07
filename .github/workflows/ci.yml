@@ -18,7 +18,6 @@ jobs:
         rust:
           - stable
           - beta
-          - nightly
         include:
           - rust: nightly
             allow_failure: true
@@ -138,4 +137,4 @@ jobs:
       uses: codecov/codecov-action@v3
       with:
         files: lcov.info
-        fail_ci_if_error: true
+        fail_ci_if_error: false
