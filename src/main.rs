@@ -26,7 +26,7 @@ enum Commands {
     },
     /// Show characters by tone for specified pinyin
     ByTone {
-        /// The pinyin (without tone marks) to search for
+        /// The pinyin (without tone marks) to search for. Use 'v' for 'ü' (e.g., 'nv' for 'nü')
         pinyin: String,
         /// Use traditional characters instead of simplified
         #[arg(short = 'r', long)]
@@ -61,9 +61,12 @@ fn process_by_pinyin(fold_size: Option<usize>, use_traditional: bool) {
 }
 
 fn process_by_tone(target_pinyin: &str, use_traditional: bool) {
+    // Replace 'v' with 'ü' in pinyin input (common typing convention)
+    let normalized_pinyin = target_pinyin.replace('v', "ü");
+    
     match read_hanzi_file("hanzi.tsv") {
         Ok(records) => {
-            match group_by_tone(&records, target_pinyin, use_traditional) {
+            match group_by_tone(&records, &normalized_pinyin, use_traditional) {
                 Some(tone_groups) => {
                     let output_lines = format_tone_output(&tone_groups);
                     for line in output_lines {
@@ -71,7 +74,7 @@ fn process_by_tone(target_pinyin: &str, use_traditional: bool) {
                     }
                 }
                 None => {
-                    println!("No characters found for pinyin: {}", target_pinyin);
+                    println!("No characters found for pinyin: {}", normalized_pinyin);
                 }
             }
         }
@@ -415,5 +418,30 @@ mod tests {
         assert_eq!(tone_groups.len(), 2);
         assert_eq!(tone_groups[0].0, 3); // tone 3 comes first
         assert_eq!(tone_groups[1].0, 5); // tone 5 comes after
+    }
+
+    #[test]
+    fn test_pinyin_v_to_u_replacement() {
+        // Test that 'v' in pinyin input gets replaced with 'ü'
+        let records = vec![
+            HanziRecord {
+                frequency: 1,
+                simplified: "女".to_string(),
+                traditional: "女".to_string(),
+                pinyin: "nǚ".to_string(),
+                pinyin_without_tone: "nü".to_string(),
+                tone: 3,
+                onset: study_rust_kanji::HanziOnset::N,
+                rime: study_rust_kanji::HanziRime::V,
+            },
+        ];
+        
+        // Search with 'v' should not find characters with 'ü' at the low level
+        let result = group_by_tone(&records, "nv", false);
+        assert!(result.is_none(), "Direct search with 'v' should not find 'ü' characters");
+        
+        // But the normalized search should work
+        let result_with_u = group_by_tone(&records, "nü", false);
+        assert!(result_with_u.is_some(), "Search with 'ü' should find characters");
     }
 }

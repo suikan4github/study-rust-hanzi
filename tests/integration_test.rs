@@ -143,3 +143,23 @@ fn test_by_tone_tone_ordering() {
         }
     }
 }
+
+#[test]
+fn test_by_tone_v_to_u_replacement() {
+    // Test that 'v' in command line input gets replaced with 'ü'
+    let output = Command::new("cargo")
+        .args(&["run", "--", "by-tone", "nv"])
+        .output()
+        .expect("Failed to execute command");
+
+    let stdout = String::from_utf8(output.stdout).expect("Invalid UTF-8");
+    
+    // Should find characters for 'nü' when searching for 'nv'
+    // If no characters found, it should show the normalized pinyin in the message
+    if stdout.contains("No characters found") {
+        assert!(stdout.contains("nü"), "Error message should show normalized pinyin 'nü'");
+    } else {
+        // If characters are found, the output should not be empty
+        assert!(!stdout.is_empty(), "Should have output when characters are found");
+    }
+}
