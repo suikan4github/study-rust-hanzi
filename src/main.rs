@@ -36,7 +36,7 @@ fn process_by_pinyin() {
             
             for (pinyin, characters) in sorted_pinyins {
                 let char_list = characters.join("");
-                if let Err(_) = writeln!(std::io::stdout(), "{:<5}: {:3} {}", pinyin, characters.len(), char_list) {
+                if let Err(_) = writeln!(std::io::stdout(), "{:<8}: {:3} {}", pinyin, characters.len(), char_list) {
                     break; // Broken pipe handling: exit quietly when pipe is closed
                 }
             }
