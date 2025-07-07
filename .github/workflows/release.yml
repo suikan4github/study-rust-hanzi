@@ -84,13 +84,13 @@ jobs:
       if: matrix.os != 'windows-latest'
       run: |
         cd target/${{ matrix.target }}/release
-        tar -czf ../../../${{ matrix.archive_name }} study-rust-kanji${{ matrix.suffix }}
+        tar -czf ../../../${{ matrix.archive_name }} study-rust-kanji${{ matrix.suffix }} ../../../hanzi.tsv
 
     - name: Create archive (Windows)
       if: matrix.os == 'windows-latest'
       run: |
         cd target/${{ matrix.target }}/release
-        7z a ../../../${{ matrix.archive_name }} study-rust-kanji${{ matrix.suffix }}
+        7z a ../../../${{ matrix.archive_name }} study-rust-kanji${{ matrix.suffix }} ../../../hanzi.tsv
 
     - name: Upload Release Asset
       uses: softprops/action-gh-release@v1
