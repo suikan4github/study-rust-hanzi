@@ -25,6 +25,7 @@
 
 use std::collections::HashMap;
 use std::io::BufRead;
+use std::str::FromStr;
 
 /// Enumeration of Hanzi onset sounds (initial consonants)
 ///
@@ -63,6 +64,115 @@ pub enum HanziOnset {
     Y,
     W,
     None,
+}
+
+impl HanziOnset {
+    /// Returns the kebab-case string representation of the onset
+    ///
+    /// This method converts the onset to a kebab-case string format,
+    /// where compound onsets (like `Zh`, `Ch`, `Sh`) are represented
+    /// in lowercase with no separators, and `None` is represented as "none".
+    ///
+    /// # Returns
+    ///
+    /// A string slice representing the onset in kebab-case format
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use study_rust_hanzi::HanziOnset;
+    ///
+    /// assert_eq!(HanziOnset::B.as_str(), "b");
+    /// assert_eq!(HanziOnset::Zh.as_str(), "zh");
+    /// assert_eq!(HanziOnset::None.as_str(), "none");
+    /// ```
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            HanziOnset::B => "b",
+            HanziOnset::P => "p",
+            HanziOnset::M => "m",
+            HanziOnset::F => "f",
+            HanziOnset::D => "d",
+            HanziOnset::T => "t",
+            HanziOnset::N => "n",
+            HanziOnset::Z => "z",
+            HanziOnset::C => "c",
+            HanziOnset::S => "s",
+            HanziOnset::L => "l",
+            HanziOnset::Zh => "zh",
+            HanziOnset::Ch => "ch",
+            HanziOnset::Sh => "sh",
+            HanziOnset::R => "r",
+            HanziOnset::J => "j",
+            HanziOnset::Q => "q",
+            HanziOnset::X => "x",
+            HanziOnset::G => "g",
+            HanziOnset::K => "k",
+            HanziOnset::H => "h",
+            HanziOnset::Y => "y",
+            HanziOnset::W => "w",
+            HanziOnset::None => "none",
+        }
+    }
+}
+
+impl std::str::FromStr for HanziOnset {
+    type Err = String;
+
+    /// Parses a string into a HanziOnset
+    ///
+    /// This method converts a string representation back into a HanziOnset variant.
+    /// It accepts both the exact case-sensitive variants and their lowercase equivalents.
+    ///
+    /// # Arguments
+    ///
+    /// * `s` - The string to parse
+    ///
+    /// # Returns
+    ///
+    /// * `Ok(HanziOnset)` - If the string matches a valid onset
+    /// * `Err(String)` - If the string doesn't match any known onset
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use std::str::FromStr;
+    /// use study_rust_hanzi::HanziOnset;
+    ///
+    /// assert_eq!(HanziOnset::from_str("b"), Ok(HanziOnset::B));
+    /// assert_eq!(HanziOnset::from_str("zh"), Ok(HanziOnset::Zh));
+    /// assert_eq!(HanziOnset::from_str("none"), Ok(HanziOnset::None));
+    /// assert!(HanziOnset::from_str("invalid").is_err());
+    /// ```
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s.to_lowercase().as_str() {
+            "b" => Ok(HanziOnset::B),
+            "p" => Ok(HanziOnset::P),
+            "m" => Ok(HanziOnset::M),
+            "f" => Ok(HanziOnset::F),
+            "d" => Ok(HanziOnset::D),
+            "t" => Ok(HanziOnset::T),
+            "n" => Ok(HanziOnset::N),
+            "z" => Ok(HanziOnset::Z),
+            "c" => Ok(HanziOnset::C),
+            "s" => Ok(HanziOnset::S),
+            "l" => Ok(HanziOnset::L),
+            "zh" => Ok(HanziOnset::Zh),
+            "ch" => Ok(HanziOnset::Ch),
+            "sh" => Ok(HanziOnset::Sh),
+            "r" => Ok(HanziOnset::R),
+            "j" => Ok(HanziOnset::J),
+            "q" => Ok(HanziOnset::Q),
+            "x" => Ok(HanziOnset::X),
+            "g" => Ok(HanziOnset::G),
+            "k" => Ok(HanziOnset::K),
+            "h" => Ok(HanziOnset::H),
+            "y" => Ok(HanziOnset::Y),
+            "w" => Ok(HanziOnset::W),
+            "none" => Ok(HanziOnset::None),
+            _ => Err(format!("Invalid onset: '{s}'")),
+        }
+    }
 }
 
 /// Enumeration of Hanzi rime sounds (vowels and final consonants)
@@ -111,6 +221,138 @@ pub enum HanziRime {
     V,
     Ve,
     None,
+}
+
+impl HanziRime {
+    /// Returns the string representation of the rime
+    ///
+    /// This method converts the rime to its pinyin string representation.
+    /// The special case `V` is converted to "ü" and `Ve` to "üe" to represent
+    /// the umlaut vowel sounds in Mandarin pinyin.
+    ///
+    /// # Returns
+    ///
+    /// A string slice representing the rime in pinyin format
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use study_rust_hanzi::HanziRime;
+    ///
+    /// assert_eq!(HanziRime::A.as_str(), "a");
+    /// assert_eq!(HanziRime::Ang.as_str(), "ang");
+    /// assert_eq!(HanziRime::V.as_str(), "ü");
+    /// assert_eq!(HanziRime::Ve.as_str(), "üe");
+    /// assert_eq!(HanziRime::None.as_str(), "none");
+    /// ```
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            HanziRime::E => "e",
+            HanziRime::A => "a",
+            HanziRime::Ei => "ei",
+            HanziRime::Ai => "ai",
+            HanziRime::Ou => "ou",
+            HanziRime::Ao => "ao",
+            HanziRime::En => "en",
+            HanziRime::An => "an",
+            HanziRime::Ong => "ong",
+            HanziRime::Eng => "eng",
+            HanziRime::Ang => "ang",
+            HanziRime::I => "i",
+            HanziRime::Ie => "ie",
+            HanziRime::Ia => "ia",
+            HanziRime::Iu => "iu",
+            HanziRime::Iao => "iao",
+            HanziRime::In => "in",
+            HanziRime::Ian => "ian",
+            HanziRime::Iong => "iong",
+            HanziRime::Ing => "ing",
+            HanziRime::Iang => "iang",
+            HanziRime::U => "u",
+            HanziRime::Uo => "uo",
+            HanziRime::Ua => "ua",
+            HanziRime::Ui => "ui",
+            HanziRime::Uai => "uai",
+            HanziRime::Un => "un",
+            HanziRime::Uan => "uan",
+            HanziRime::Uang => "uang",
+            HanziRime::V => "ü",
+            HanziRime::Ve => "üe",
+            HanziRime::None => "none",
+        }
+    }
+}
+
+impl std::str::FromStr for HanziRime {
+    type Err = String;
+
+    /// Parses a string into a HanziRime
+    ///
+    /// This method converts a string representation back into a HanziRime variant.
+    /// It accepts both the exact pinyin representation and handles special cases
+    /// like "ü" and "üe" for the V and Ve variants.
+    ///
+    /// # Arguments
+    ///
+    /// * `s` - The string to parse
+    ///
+    /// # Returns
+    ///
+    /// * `Ok(HanziRime)` - If the string matches a valid rime
+    /// * `Err(String)` - If the string doesn't match any known rime
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use std::str::FromStr;
+    /// use study_rust_hanzi::HanziRime;
+    ///
+    /// assert_eq!(HanziRime::from_str("a"), Ok(HanziRime::A));
+    /// assert_eq!(HanziRime::from_str("ang"), Ok(HanziRime::Ang));
+    /// assert_eq!(HanziRime::from_str("ü"), Ok(HanziRime::V));
+    /// assert_eq!(HanziRime::from_str("üe"), Ok(HanziRime::Ve));
+    /// assert_eq!(HanziRime::from_str("none"), Ok(HanziRime::None));
+    /// assert!(HanziRime::from_str("invalid").is_err());
+    /// ```
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s.to_lowercase().as_str() {
+            "e" => Ok(HanziRime::E),
+            "a" => Ok(HanziRime::A),
+            "ei" => Ok(HanziRime::Ei),
+            "ai" => Ok(HanziRime::Ai),
+            "ou" => Ok(HanziRime::Ou),
+            "ao" => Ok(HanziRime::Ao),
+            "en" => Ok(HanziRime::En),
+            "an" => Ok(HanziRime::An),
+            "ong" => Ok(HanziRime::Ong),
+            "eng" => Ok(HanziRime::Eng),
+            "ang" => Ok(HanziRime::Ang),
+            "i" => Ok(HanziRime::I),
+            "ie" => Ok(HanziRime::Ie),
+            "ia" => Ok(HanziRime::Ia),
+            "iu" => Ok(HanziRime::Iu),
+            "iao" => Ok(HanziRime::Iao),
+            "in" => Ok(HanziRime::In),
+            "ian" => Ok(HanziRime::Ian),
+            "iong" => Ok(HanziRime::Iong),
+            "ing" => Ok(HanziRime::Ing),
+            "iang" => Ok(HanziRime::Iang),
+            "u" => Ok(HanziRime::U),
+            "uo" => Ok(HanziRime::Uo),
+            "ua" => Ok(HanziRime::Ua),
+            "ui" => Ok(HanziRime::Ui),
+            "uai" => Ok(HanziRime::Uai),
+            "un" => Ok(HanziRime::Un),
+            "uan" => Ok(HanziRime::Uan),
+            "uang" => Ok(HanziRime::Uang),
+            "ü" => Ok(HanziRime::V),
+            "üe" => Ok(HanziRime::Ve),
+            "v" => Ok(HanziRime::V),   // Alternative representation for ü
+            "ve" => Ok(HanziRime::Ve), // Alternative representation for üe
+            "none" => Ok(HanziRime::None),
+            _ => Err(format!("Invalid rime: '{s}'")),
+        }
+    }
 }
 
 /// Represents a single Chinese character with all its linguistic and frequency data
@@ -198,6 +440,10 @@ pub fn read_hanzi_file(file_path: &str) -> std::io::Result<Vec<HanziRecord>> {
 /// determines the appropriate onset classification based on the initial consonant(s).
 /// The onset field is updated in-place for each record.
 ///
+/// The function uses `HanziOnset::from_str()` internally for efficient onset detection,
+/// checking possible onsets in order of decreasing length to ensure proper matching
+/// (e.g., "zh" before "z").
+///
 /// # Arguments
 ///
 /// * `records` - Mutable slice of HanziRecord to analyze
@@ -214,57 +460,25 @@ pub fn read_hanzi_file(file_path: &str) -> std::io::Result<Vec<HanziRecord>> {
 /// - "ma" → `HanziOnset::M`  
 /// - "an" → `HanziOnset::None`
 pub fn set_hanzi_onsets(records: &mut [HanziRecord]) {
+    use std::str::FromStr;
+
+    // Define onset candidates in order of decreasing length to ensure proper matching
+    // (e.g., "zh" must be checked before "z")
+    const ONSET_CANDIDATES: &[&str] = &[
+        "zh", "ch", "sh", // Multi-character onsets first
+        "b", "p", "m", "f", "d", "t", "n", "z", "c", "s", "l", "r", "j", "q", "x", "g", "k", "h",
+        "y", "w",
+    ];
+
     for record in records.iter_mut() {
         let pinyin = &record.pinyin_without_tone;
-        record.onset = if pinyin.starts_with("zh") {
-            HanziOnset::Zh
-        } else if pinyin.starts_with("ch") {
-            HanziOnset::Ch
-        } else if pinyin.starts_with("sh") {
-            HanziOnset::Sh
-        } else if pinyin.starts_with("b") {
-            HanziOnset::B
-        } else if pinyin.starts_with("p") {
-            HanziOnset::P
-        } else if pinyin.starts_with("m") {
-            HanziOnset::M
-        } else if pinyin.starts_with("f") {
-            HanziOnset::F
-        } else if pinyin.starts_with("d") {
-            HanziOnset::D
-        } else if pinyin.starts_with("t") {
-            HanziOnset::T
-        } else if pinyin.starts_with("n") {
-            HanziOnset::N
-        } else if pinyin.starts_with("z") {
-            HanziOnset::Z
-        } else if pinyin.starts_with("c") {
-            HanziOnset::C
-        } else if pinyin.starts_with("s") {
-            HanziOnset::S
-        } else if pinyin.starts_with("l") {
-            HanziOnset::L
-        } else if pinyin.starts_with("r") {
-            HanziOnset::R
-        } else if pinyin.starts_with("j") {
-            HanziOnset::J
-        } else if pinyin.starts_with("q") {
-            HanziOnset::Q
-        } else if pinyin.starts_with("x") {
-            HanziOnset::X
-        } else if pinyin.starts_with("g") {
-            HanziOnset::G
-        } else if pinyin.starts_with("k") {
-            HanziOnset::K
-        } else if pinyin.starts_with("h") {
-            HanziOnset::H
-        } else if pinyin.starts_with("y") {
-            HanziOnset::Y
-        } else if pinyin.starts_with("w") {
-            HanziOnset::W
-        } else {
-            HanziOnset::None
-        };
+
+        // Try to find the first matching onset
+        record.onset = ONSET_CANDIDATES
+            .iter()
+            .find(|&&onset_str| pinyin.starts_with(onset_str))
+            .and_then(|&onset_str| HanziOnset::from_str(onset_str).ok())
+            .unwrap_or(HanziOnset::None);
     }
 }
 
@@ -300,35 +514,10 @@ pub fn set_hanzi_rime(records: &mut [HanziRecord]) {
         let pinyin = &record.pinyin_without_tone;
 
         // Get onset string representation
-        let onset_str = match record.onset {
-            HanziOnset::B => "b",
-            HanziOnset::P => "p",
-            HanziOnset::M => "m",
-            HanziOnset::F => "f",
-            HanziOnset::D => "d",
-            HanziOnset::T => "t",
-            HanziOnset::N => "n",
-            HanziOnset::Z => "z",
-            HanziOnset::C => "c",
-            HanziOnset::S => "s",
-            HanziOnset::L => "l",
-            HanziOnset::Zh => "zh",
-            HanziOnset::Ch => "ch",
-            HanziOnset::Sh => "sh",
-            HanziOnset::R => "r",
-            HanziOnset::J => "j",
-            HanziOnset::Q => "q",
-            HanziOnset::X => "x",
-            HanziOnset::G => "g",
-            HanziOnset::K => "k",
-            HanziOnset::H => "h",
-            HanziOnset::Y => "y",
-            HanziOnset::W => "w",
-            HanziOnset::None => "",
-        };
+        let onset_str = record.onset.as_str();
 
         // Extract rime part excluding onset
-        let rime_part = if onset_str.is_empty() {
+        let rime_part = if onset_str == "none" {
             pinyin.as_str()
         } else if let Some(stripped) = pinyin.strip_prefix(onset_str) {
             stripped
@@ -337,41 +526,8 @@ pub fn set_hanzi_rime(records: &mut [HanziRecord]) {
             pinyin.as_str()
         };
 
-        // Check if rime part matches any HanziRime value
-        record.rime = match rime_part {
-            "e" => HanziRime::E,
-            "a" => HanziRime::A,
-            "ei" => HanziRime::Ei,
-            "ai" => HanziRime::Ai,
-            "ou" => HanziRime::Ou,
-            "ao" => HanziRime::Ao,
-            "en" => HanziRime::En,
-            "an" => HanziRime::An,
-            "ong" => HanziRime::Ong,
-            "eng" => HanziRime::Eng,
-            "ang" => HanziRime::Ang,
-            "i" => HanziRime::I,
-            "ie" => HanziRime::Ie,
-            "ia" => HanziRime::Ia,
-            "iu" => HanziRime::Iu,
-            "iao" => HanziRime::Iao,
-            "in" => HanziRime::In,
-            "ian" => HanziRime::Ian,
-            "iong" => HanziRime::Iong,
-            "ing" => HanziRime::Ing,
-            "iang" => HanziRime::Iang,
-            "u" => HanziRime::U,
-            "uo" => HanziRime::Uo,
-            "ua" => HanziRime::Ua,
-            "ui" => HanziRime::Ui,
-            "uai" => HanziRime::Uai,
-            "un" => HanziRime::Un,
-            "uan" => HanziRime::Uan,
-            "uang" => HanziRime::Uang,
-            "ü" => HanziRime::V,
-            "üe" => HanziRime::Ve,
-            _ => HanziRime::None,
-        };
+        // Try to parse rime part using HanziRime::from_str()
+        record.rime = HanziRime::from_str(rime_part).unwrap_or(HanziRime::None);
     }
 }
 
@@ -401,7 +557,7 @@ pub fn set_hanzi_rime(records: &mut [HanziRecord]) {
 /// # Examples
 ///
 /// ```rust
-/// # use study_rust_kanji::{HanziRecord, HanziOnset, HanziRime, group_by_pinyin};
+/// # use study_rust_hanzi::{HanziRecord, HanziOnset, HanziRime, group_by_pinyin};
 /// # let records = vec![]; // Placeholder for actual records
 /// let grouped = group_by_pinyin(&records, false); // Use simplified characters
 /// // Result: [("de", vec!["的", "得", "地"]), ("yi", vec!["一", "以"]), ...]
@@ -553,7 +709,7 @@ pub fn format_pinyin_output(
 /// # Examples
 ///
 /// ```rust
-/// # use study_rust_kanji::{HanziRecord, HanziOnset, HanziRime, group_by_tone};
+/// # use study_rust_hanzi::{HanziRecord, HanziOnset, HanziRime, group_by_tone};
 /// # let records = vec![]; // Placeholder for actual records
 /// if let Some(tone_groups) = group_by_tone(&records, "ma", false) {
 ///     // tone_groups: [(1, "mā", vec!["妈"]), (3, "mǎ", vec!["马"]), ...]
@@ -630,7 +786,7 @@ pub fn group_by_tone(
 /// # Examples
 ///
 /// ```rust
-/// # use study_rust_kanji::format_tone_output;
+/// # use study_rust_hanzi::format_tone_output;
 /// let tone_data = vec![
 ///     (1, "mā".to_string(), vec!["妈".to_string()]),
 ///     (3, "mǎ".to_string(), vec!["马".to_string(), "码".to_string()]),
@@ -643,7 +799,7 @@ pub fn group_by_tone(
 ///
 /// This function is typically used in conjunction with [`group_by_tone`]:
 /// ```rust,no_run
-/// # use study_rust_kanji::{group_by_tone, format_tone_output};
+/// # use study_rust_hanzi::{group_by_tone, format_tone_output};
 /// # let records = vec![]; // Placeholder
 /// if let Some(tone_groups) = group_by_tone(&records, "ma", false) {
 ///     let formatted = format_tone_output(&tone_groups);
@@ -900,7 +1056,7 @@ mod tests {
                 continue;
             } else {
                 // Only warning if it doesn't exist
-                println!("Warning: HanziRime::{expected_rime:?} was not found in any record");
+                println!("HanziRime::{expected_rime:?} was not found in any record");
             }
         }
     }
@@ -1132,6 +1288,39 @@ mod tests {
     }
 
     #[test]
+    fn test_hanzi_onset_as_str() {
+        // Test single character onsets
+        assert_eq!(HanziOnset::B.as_str(), "b");
+        assert_eq!(HanziOnset::P.as_str(), "p");
+        assert_eq!(HanziOnset::M.as_str(), "m");
+        assert_eq!(HanziOnset::F.as_str(), "f");
+        assert_eq!(HanziOnset::D.as_str(), "d");
+        assert_eq!(HanziOnset::T.as_str(), "t");
+        assert_eq!(HanziOnset::N.as_str(), "n");
+        assert_eq!(HanziOnset::Z.as_str(), "z");
+        assert_eq!(HanziOnset::C.as_str(), "c");
+        assert_eq!(HanziOnset::S.as_str(), "s");
+        assert_eq!(HanziOnset::L.as_str(), "l");
+        assert_eq!(HanziOnset::R.as_str(), "r");
+        assert_eq!(HanziOnset::J.as_str(), "j");
+        assert_eq!(HanziOnset::Q.as_str(), "q");
+        assert_eq!(HanziOnset::X.as_str(), "x");
+        assert_eq!(HanziOnset::G.as_str(), "g");
+        assert_eq!(HanziOnset::K.as_str(), "k");
+        assert_eq!(HanziOnset::H.as_str(), "h");
+        assert_eq!(HanziOnset::Y.as_str(), "y");
+        assert_eq!(HanziOnset::W.as_str(), "w");
+
+        // Test compound onsets (kebab-case format)
+        assert_eq!(HanziOnset::Zh.as_str(), "zh");
+        assert_eq!(HanziOnset::Ch.as_str(), "ch");
+        assert_eq!(HanziOnset::Sh.as_str(), "sh");
+
+        // Test None case
+        assert_eq!(HanziOnset::None.as_str(), "none");
+    }
+
+    #[test]
     fn test_pinyin_v_to_u_replacement() {
         // Test that 'v' in pinyin input gets replaced with 'ü'
         let records = vec![HanziRecord {
@@ -1158,5 +1347,212 @@ mod tests {
             result_with_u.is_some(),
             "Search with 'ü' should find characters"
         );
+    }
+
+    #[test]
+    fn test_onset_from_str() {
+        use std::str::FromStr;
+
+        // Test valid single-character onsets
+        assert_eq!(HanziOnset::from_str("b"), Ok(HanziOnset::B));
+        assert_eq!(HanziOnset::from_str("B"), Ok(HanziOnset::B));
+        assert_eq!(HanziOnset::from_str("p"), Ok(HanziOnset::P));
+        assert_eq!(HanziOnset::from_str("m"), Ok(HanziOnset::M));
+
+        // Test valid multi-character onsets
+        assert_eq!(HanziOnset::from_str("zh"), Ok(HanziOnset::Zh));
+        assert_eq!(HanziOnset::from_str("Zh"), Ok(HanziOnset::Zh));
+        assert_eq!(HanziOnset::from_str("ZH"), Ok(HanziOnset::Zh));
+        assert_eq!(HanziOnset::from_str("ch"), Ok(HanziOnset::Ch));
+        assert_eq!(HanziOnset::from_str("sh"), Ok(HanziOnset::Sh));
+
+        // Test special case
+        assert_eq!(HanziOnset::from_str("none"), Ok(HanziOnset::None));
+        assert_eq!(HanziOnset::from_str("None"), Ok(HanziOnset::None));
+        assert_eq!(HanziOnset::from_str("NONE"), Ok(HanziOnset::None));
+
+        // Test invalid inputs
+        assert!(HanziOnset::from_str("invalid").is_err());
+        assert!(HanziOnset::from_str("").is_err());
+        assert!(HanziOnset::from_str("zz").is_err());
+
+        // Test error message
+        let result = HanziOnset::from_str("invalid");
+        assert!(result.is_err());
+        assert_eq!(result.unwrap_err(), "Invalid onset: 'invalid'");
+    }
+
+    #[test]
+    fn test_set_hanzi_onsets_refactored() {
+        // Test the refactored set_hanzi_onsets function with specific cases
+        let mut test_records = vec![
+            HanziRecord {
+                frequency: 1,
+                simplified: "中".to_string(),
+                traditional: "中".to_string(),
+                pinyin: "zhōng".to_string(),
+                pinyin_without_tone: "zhong".to_string(),
+                tone: 1,
+                onset: HanziOnset::None, // Initial value
+                rime: HanziRime::None,
+            },
+            HanziRecord {
+                frequency: 2,
+                simplified: "是".to_string(),
+                traditional: "是".to_string(),
+                pinyin: "shì".to_string(),
+                pinyin_without_tone: "shi".to_string(),
+                tone: 4,
+                onset: HanziOnset::None, // Initial value
+                rime: HanziRime::None,
+            },
+            HanziRecord {
+                frequency: 3,
+                simplified: "马".to_string(),
+                traditional: "马".to_string(),
+                pinyin: "mǎ".to_string(),
+                pinyin_without_tone: "ma".to_string(),
+                tone: 3,
+                onset: HanziOnset::None, // Initial value
+                rime: HanziRime::None,
+            },
+            HanziRecord {
+                frequency: 4,
+                simplified: "安".to_string(),
+                traditional: "安".to_string(),
+                pinyin: "ān".to_string(),
+                pinyin_without_tone: "an".to_string(),
+                tone: 1,
+                onset: HanziOnset::None, // Initial value
+                rime: HanziRime::None,
+            },
+        ];
+
+        // Apply the refactored set_hanzi_onsets function
+        set_hanzi_onsets(&mut test_records);
+
+        // Verify the results
+        assert_eq!(test_records[0].onset, HanziOnset::Zh); // "zhong" -> Zh
+        assert_eq!(test_records[1].onset, HanziOnset::Sh); // "shi" -> Sh
+        assert_eq!(test_records[2].onset, HanziOnset::M); // "ma" -> M
+        assert_eq!(test_records[3].onset, HanziOnset::None); // "an" -> None (vowel-initial)
+    }
+
+    #[test]
+    fn test_hanzi_rime_as_str() {
+        // Test simple vowel rimes
+        assert_eq!(HanziRime::E.as_str(), "e");
+        assert_eq!(HanziRime::A.as_str(), "a");
+        assert_eq!(HanziRime::I.as_str(), "i");
+        assert_eq!(HanziRime::U.as_str(), "u");
+
+        // Test compound vowel rimes
+        assert_eq!(HanziRime::Ei.as_str(), "ei");
+        assert_eq!(HanziRime::Ai.as_str(), "ai");
+        assert_eq!(HanziRime::Ou.as_str(), "ou");
+        assert_eq!(HanziRime::Ao.as_str(), "ao");
+
+        // Test nasal ending rimes
+        assert_eq!(HanziRime::En.as_str(), "en");
+        assert_eq!(HanziRime::An.as_str(), "an");
+        assert_eq!(HanziRime::Eng.as_str(), "eng");
+        assert_eq!(HanziRime::Ang.as_str(), "ang");
+        assert_eq!(HanziRime::Ong.as_str(), "ong");
+
+        // Test complex compound rimes
+        assert_eq!(HanziRime::Ie.as_str(), "ie");
+        assert_eq!(HanziRime::Ia.as_str(), "ia");
+        assert_eq!(HanziRime::Iu.as_str(), "iu");
+        assert_eq!(HanziRime::Iao.as_str(), "iao");
+        assert_eq!(HanziRime::In.as_str(), "in");
+        assert_eq!(HanziRime::Ian.as_str(), "ian");
+        assert_eq!(HanziRime::Iong.as_str(), "iong");
+        assert_eq!(HanziRime::Ing.as_str(), "ing");
+        assert_eq!(HanziRime::Iang.as_str(), "iang");
+
+        // Test u-compound rimes
+        assert_eq!(HanziRime::Uo.as_str(), "uo");
+        assert_eq!(HanziRime::Ua.as_str(), "ua");
+        assert_eq!(HanziRime::Ui.as_str(), "ui");
+        assert_eq!(HanziRime::Uai.as_str(), "uai");
+        assert_eq!(HanziRime::Un.as_str(), "un");
+        assert_eq!(HanziRime::Uan.as_str(), "uan");
+        assert_eq!(HanziRime::Uang.as_str(), "uang");
+
+        // Test special ü rimes
+        assert_eq!(HanziRime::V.as_str(), "ü");
+        assert_eq!(HanziRime::Ve.as_str(), "üe");
+
+        // Test None case
+        assert_eq!(HanziRime::None.as_str(), "none");
+    }
+
+    #[test]
+    fn test_rime_from_str() {
+        use std::str::FromStr;
+
+        // Test valid simple vowel rimes
+        assert_eq!(HanziRime::from_str("e"), Ok(HanziRime::E));
+        assert_eq!(HanziRime::from_str("a"), Ok(HanziRime::A));
+        assert_eq!(HanziRime::from_str("i"), Ok(HanziRime::I));
+        assert_eq!(HanziRime::from_str("u"), Ok(HanziRime::U));
+
+        // Test valid compound vowel rimes
+        assert_eq!(HanziRime::from_str("ei"), Ok(HanziRime::Ei));
+        assert_eq!(HanziRime::from_str("ai"), Ok(HanziRime::Ai));
+        assert_eq!(HanziRime::from_str("ou"), Ok(HanziRime::Ou));
+        assert_eq!(HanziRime::from_str("ao"), Ok(HanziRime::Ao));
+
+        // Test valid nasal ending rimes
+        assert_eq!(HanziRime::from_str("en"), Ok(HanziRime::En));
+        assert_eq!(HanziRime::from_str("an"), Ok(HanziRime::An));
+        assert_eq!(HanziRime::from_str("eng"), Ok(HanziRime::Eng));
+        assert_eq!(HanziRime::from_str("ang"), Ok(HanziRime::Ang));
+        assert_eq!(HanziRime::from_str("ong"), Ok(HanziRime::Ong));
+
+        // Test valid complex compound rimes
+        assert_eq!(HanziRime::from_str("ie"), Ok(HanziRime::Ie));
+        assert_eq!(HanziRime::from_str("ia"), Ok(HanziRime::Ia));
+        assert_eq!(HanziRime::from_str("iu"), Ok(HanziRime::Iu));
+        assert_eq!(HanziRime::from_str("iao"), Ok(HanziRime::Iao));
+        assert_eq!(HanziRime::from_str("in"), Ok(HanziRime::In));
+        assert_eq!(HanziRime::from_str("ian"), Ok(HanziRime::Ian));
+        assert_eq!(HanziRime::from_str("iong"), Ok(HanziRime::Iong));
+        assert_eq!(HanziRime::from_str("ing"), Ok(HanziRime::Ing));
+        assert_eq!(HanziRime::from_str("iang"), Ok(HanziRime::Iang));
+
+        // Test valid u-compound rimes
+        assert_eq!(HanziRime::from_str("uo"), Ok(HanziRime::Uo));
+        assert_eq!(HanziRime::from_str("ua"), Ok(HanziRime::Ua));
+        assert_eq!(HanziRime::from_str("ui"), Ok(HanziRime::Ui));
+        assert_eq!(HanziRime::from_str("uai"), Ok(HanziRime::Uai));
+        assert_eq!(HanziRime::from_str("un"), Ok(HanziRime::Un));
+        assert_eq!(HanziRime::from_str("uan"), Ok(HanziRime::Uan));
+        assert_eq!(HanziRime::from_str("uang"), Ok(HanziRime::Uang));
+
+        // Test special ü rimes - both ü and v representations
+        assert_eq!(HanziRime::from_str("ü"), Ok(HanziRime::V));
+        assert_eq!(HanziRime::from_str("v"), Ok(HanziRime::V));
+        assert_eq!(HanziRime::from_str("üe"), Ok(HanziRime::Ve));
+        assert_eq!(HanziRime::from_str("ve"), Ok(HanziRime::Ve));
+
+        // Test case insensitivity
+        assert_eq!(HanziRime::from_str("ANG"), Ok(HanziRime::Ang));
+        assert_eq!(HanziRime::from_str("Iang"), Ok(HanziRime::Iang));
+
+        // Test special case
+        assert_eq!(HanziRime::from_str("none"), Ok(HanziRime::None));
+        assert_eq!(HanziRime::from_str("None"), Ok(HanziRime::None));
+        assert_eq!(HanziRime::from_str("NONE"), Ok(HanziRime::None));
+
+        // Test invalid inputs
+        assert!(HanziRime::from_str("invalid").is_err());
+        assert!(HanziRime::from_str("").is_err());
+        assert!(HanziRime::from_str("xyz").is_err());
+
+        // Test error message
+        let result = HanziRime::from_str("invalid");
+        assert!(result.is_err());
+        assert_eq!(result.unwrap_err(), "Invalid rime: 'invalid'");
     }
 }

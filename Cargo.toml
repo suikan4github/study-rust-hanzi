@@ -1,6 +1,6 @@
 [package]
 name = "study-rust-kanji"
-version = "1.0.0"
+version = "1.0.1"
 edition = "2021"
 description = "Rust program for Hanzi learning and phonetic analysis"
 authors = ["suikan4github"]
@@ -12,7 +12,7 @@ keywords = ["chinese", "hanzi", "pinyin", "linguistics", "phonetics"]
 categories = ["command-line-utilities", "text-processing"]
 
 [lib]
-name = "study_rust_kanji"
+name = "study_rust_hanzi"
 path = "src/lib.rs"
 doc = true
 

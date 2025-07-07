@@ -41,7 +41,7 @@
 use clap::{CommandFactory, Parser, Subcommand};
 use clap_complete::{generate, Generator, Shell};
 use std::io::{self, Write};
-use study_rust_kanji::{
+use study_rust_hanzi::{
     format_pinyin_output, format_tone_output, group_by_pinyin, group_by_tone, read_hanzi_file,
 };
 
