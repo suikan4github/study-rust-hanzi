@@ -1,24 +1,37 @@
-use clap::Parser;
+use clap::{CommandFactory, Parser, Subcommand};
+use clap_complete::{generate, Generator, Shell};
 use study_rust_kanji::read_hanzi_file;
 use std::collections::HashMap;
-use std::io::Write;
+use std::io::{self, Write};
 
 /// Hanzi learning program
 #[derive(Parser)]
 #[command(name = env!("CARGO_PKG_NAME"))]
 #[command(version)]
 struct Args {
-    /// Sort by pinyin
-    #[arg(short = 'p', long, group = "mode")]
-    by_pinyin: bool,
-    
+    #[command(subcommand)]
+    command: Commands,
+}
+
+#[derive(Subcommand)]
+enum Commands {
+    /// List unique pinyin with frequency and characters
+    ByPinyin {
+        /// Fold long lines when character count exceeds specified value (default: 50)
+        #[arg(short = 'f', long, value_name = "WIDTH", default_missing_value = "50", num_args = 0..=1)]
+        fold: Option<usize>,
+    },
     /// Show characters by tone for specified pinyin
-    #[arg(short = 't', long, group = "mode")]
-    by_tone: Option<String>,
-    
-    /// Fold long lines when character count exceeds specified value (default: 50)
-    #[arg(short = 'f', long, value_name = "WIDTH", default_missing_value = "50", num_args = 0..=1)]
-    fold: Option<usize>,
+    ByTone {
+        /// The pinyin (without tone marks) to search for
+        pinyin: String,
+    },
+    /// Generate shell completion scripts
+    GenerateCompletion {
+        /// The shell to generate completion script for
+        #[arg(value_enum)]
+        shell: Shell,
+    },
 }
 
 fn process_by_pinyin(fold_size: Option<usize>) {
@@ -115,14 +128,24 @@ fn process_by_tone(target_pinyin: &str) {
     }
 }
 
+fn print_completions<G: Generator>(gen: G, cmd: &mut clap::Command) {
+    generate(gen, cmd, cmd.get_name().to_string(), &mut io::stdout());
+}
+
 fn main() {
     let args = Args::parse();
     
-    if args.by_pinyin {
-        process_by_pinyin(args.fold);
-    }
-    
-    if let Some(target_pinyin) = args.by_tone {
-        process_by_tone(&target_pinyin);
+    match args.command {
+        Commands::ByPinyin { fold } => {
+            process_by_pinyin(fold);
+        }
+        Commands::ByTone { pinyin } => {
+            process_by_tone(&pinyin);
+        }
+        Commands::GenerateCompletion { shell } => {
+            let mut cmd = Args::command();
+            eprintln!("Generating completion file for {}...", shell);
+            print_completions(shell, &mut cmd);
+        }
     }
 }
