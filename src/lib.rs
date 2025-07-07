@@ -393,12 +393,13 @@ pub fn set_hanzi_onsets(records: &mut [HanziRecord]) {
     // (e.g., "zh" must be checked before "z")
     const ONSET_CANDIDATES: &[&str] = &[
         "zh", "ch", "sh", // Multi-character onsets first
-        "b", "p", "m", "f", "d", "t", "n", "z", "c", "s", "l", "r", "j", "q", "x", "g", "k", "h", "y", "w"
+        "b", "p", "m", "f", "d", "t", "n", "z", "c", "s", "l", "r", "j", "q", "x", "g", "k", "h",
+        "y", "w",
     ];
 
     for record in records.iter_mut() {
         let pinyin = &record.pinyin_without_tone;
-        
+
         // Try to find the first matching onset
         record.onset = ONSET_CANDIDATES
             .iter()
@@ -1392,8 +1393,8 @@ mod tests {
 
         // Verify the results
         assert_eq!(test_records[0].onset, HanziOnset::Zh); // "zhong" -> Zh
-        assert_eq!(test_records[1].onset, HanziOnset::Sh); // "shi" -> Sh  
-        assert_eq!(test_records[2].onset, HanziOnset::M);  // "ma" -> M
+        assert_eq!(test_records[1].onset, HanziOnset::Sh); // "shi" -> Sh
+        assert_eq!(test_records[2].onset, HanziOnset::M); // "ma" -> M
         assert_eq!(test_records[3].onset, HanziOnset::None); // "an" -> None (vowel-initial)
     }
 
