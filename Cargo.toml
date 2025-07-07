@@ -3,6 +3,7 @@ name = "study-rust-kanji"
 version = "0.0.2"
 edition = "2021"
 description = "Rust program for Hanzi learning"
+authors = ["suikan4github"]
 
 [lib]
 name = "study_rust_kanji"
