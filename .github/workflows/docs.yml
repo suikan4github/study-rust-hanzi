@@ -22,8 +22,12 @@ jobs:
 
     - name: Build documentation
       run: |
-        cargo doc --no-deps --all-features
+        cargo doc --no-deps --all-features --document-private-items
         echo '<meta http-equiv="refresh" content="0; url=study_rust_kanji">' > target/doc/index.html
+        
+    - name: Generate examples
+      run: |
+        cargo test --doc --no-run
 
     - name: Deploy to GitHub Pages
       if: github.ref == 'refs/heads/main'

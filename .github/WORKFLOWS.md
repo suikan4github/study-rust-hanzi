@@ -20,8 +20,8 @@ Triggers on version tags (e.g., `v1.0.0`).
 **Features:**
 - **Automated releases**: Creates GitHub releases with binaries
 - **Cross-platform binaries**: Builds for multiple platforms
-- **Crates.io publishing**: Automatically publishes to crates.io
 - **Archive creation**: Creates compressed archives for each platform
+- **Data file inclusion**: Includes `hanzi.tsv` data file with binaries
 
 ### 3. Dependencies (`dependencies.yml`)
 Runs weekly to keep dependencies up-to-date.
@@ -37,16 +37,10 @@ Builds and deploys documentation.
 **Features:**
 - **Auto-generated docs**: Builds Rust documentation with `cargo doc`
 - **GitHub Pages**: Deploys documentation to GitHub Pages
-- **Updated on main**: Automatically updates docs when main branch changes
+- **Triggered on**: Push to `main` branch and PRs targeting `main`
+- **Deployment**: Only deploys to Pages on `main` branch pushes
 
 ## Setup Requirements
-
-### Secrets
-Configure these secrets in your GitHub repository settings:
-
-1. `CARGO_REGISTRY_TOKEN`: Token for publishing to crates.io
-   - Get from [crates.io/me](https://crates.io/me)
-   - Add to repository secrets
 
 ### Branch Protection
 Recommended branch protection rules for `main`:
@@ -72,7 +66,7 @@ To use Codecov:
 - **CI**: Automatically runs on push/PR
 - **Release**: Push a version tag: `git tag v1.0.0 && git push origin v1.0.0`
 - **Dependencies**: Runs automatically weekly, or trigger manually
-- **Documentation**: Automatically runs on main branch changes
+- **Documentation**: Automatically runs on push/PR to `main` branch
 
 ### Manual Triggering
 
@@ -89,7 +83,7 @@ Some workflows support manual triggering via GitHub's "Actions" tab:
 5. GitHub Actions will automatically:
    - Create a GitHub release
    - Build and attach binaries
-   - Publish to crates.io
+   - Include `hanzi.tsv` data file
 
 ## Customization
 
