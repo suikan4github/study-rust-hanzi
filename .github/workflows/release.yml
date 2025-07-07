@@ -78,8 +78,8 @@ jobs:
         VERSION=${GITHUB_REF_NAME#v}
         echo "Updating version to: $VERSION for build"
         
-        # Update version in Cargo.toml using sed
-        sed -i "s/^version = \".*\"/version = \"$VERSION\"/" Cargo.toml
+        # Update version in Cargo.toml using perl (cross-platform compatible)
+        perl -pi -e "s/^version = \".*\"/version = \"$VERSION\"/" Cargo.toml
         
         # Verify the change
         echo "Updated Cargo.toml for build:"
