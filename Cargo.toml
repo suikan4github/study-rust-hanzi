@@ -12,7 +12,7 @@ keywords = ["chinese", "hanzi", "pinyin", "linguistics", "phonetics"]
 categories = ["command-line-utilities", "text-processing"]
 
 [lib]
-name = "study_rust_kanji"
+name = "study_rust_hanzi"
 path = "src/lib.rs"
 doc = true
 

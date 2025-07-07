@@ -65,6 +65,56 @@ pub enum HanziOnset {
     None,
 }
 
+impl HanziOnset {
+    /// Returns the kebab-case string representation of the onset
+    ///
+    /// This method converts the onset to a kebab-case string format,
+    /// where compound onsets (like `Zh`, `Ch`, `Sh`) are represented
+    /// in lowercase with no separators, and `None` is represented as "none".
+    ///
+    /// # Returns
+    ///
+    /// A string slice representing the onset in kebab-case format
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use study_rust_hanzi::HanziOnset;
+    ///
+    /// assert_eq!(HanziOnset::B.as_str(), "b");
+    /// assert_eq!(HanziOnset::Zh.as_str(), "zh");
+    /// assert_eq!(HanziOnset::None.as_str(), "none");
+    /// ```
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            HanziOnset::B => "b",
+            HanziOnset::P => "p",
+            HanziOnset::M => "m",
+            HanziOnset::F => "f",
+            HanziOnset::D => "d",
+            HanziOnset::T => "t",
+            HanziOnset::N => "n",
+            HanziOnset::Z => "z",
+            HanziOnset::C => "c",
+            HanziOnset::S => "s",
+            HanziOnset::L => "l",
+            HanziOnset::Zh => "zh",
+            HanziOnset::Ch => "ch",
+            HanziOnset::Sh => "sh",
+            HanziOnset::R => "r",
+            HanziOnset::J => "j",
+            HanziOnset::Q => "q",
+            HanziOnset::X => "x",
+            HanziOnset::G => "g",
+            HanziOnset::K => "k",
+            HanziOnset::H => "h",
+            HanziOnset::Y => "y",
+            HanziOnset::W => "w",
+            HanziOnset::None => "none",
+        }
+    }
+}
+
 /// Enumeration of Hanzi rime sounds (vowels and final consonants)
 ///
 /// This enum represents all possible rime sounds in Mandarin Chinese pinyin.
@@ -300,35 +350,10 @@ pub fn set_hanzi_rime(records: &mut [HanziRecord]) {
         let pinyin = &record.pinyin_without_tone;
 
         // Get onset string representation
-        let onset_str = match record.onset {
-            HanziOnset::B => "b",
-            HanziOnset::P => "p",
-            HanziOnset::M => "m",
-            HanziOnset::F => "f",
-            HanziOnset::D => "d",
-            HanziOnset::T => "t",
-            HanziOnset::N => "n",
-            HanziOnset::Z => "z",
-            HanziOnset::C => "c",
-            HanziOnset::S => "s",
-            HanziOnset::L => "l",
-            HanziOnset::Zh => "zh",
-            HanziOnset::Ch => "ch",
-            HanziOnset::Sh => "sh",
-            HanziOnset::R => "r",
-            HanziOnset::J => "j",
-            HanziOnset::Q => "q",
-            HanziOnset::X => "x",
-            HanziOnset::G => "g",
-            HanziOnset::K => "k",
-            HanziOnset::H => "h",
-            HanziOnset::Y => "y",
-            HanziOnset::W => "w",
-            HanziOnset::None => "",
-        };
+        let onset_str = record.onset.as_str();
 
         // Extract rime part excluding onset
-        let rime_part = if onset_str.is_empty() {
+        let rime_part = if onset_str == "none" {
             pinyin.as_str()
         } else if let Some(stripped) = pinyin.strip_prefix(onset_str) {
             stripped
@@ -401,7 +426,7 @@ pub fn set_hanzi_rime(records: &mut [HanziRecord]) {
 /// # Examples
 ///
 /// ```rust
-/// # use study_rust_kanji::{HanziRecord, HanziOnset, HanziRime, group_by_pinyin};
+/// # use study_rust_hanzi::{HanziRecord, HanziOnset, HanziRime, group_by_pinyin};
 /// # let records = vec![]; // Placeholder for actual records
 /// let grouped = group_by_pinyin(&records, false); // Use simplified characters
 /// // Result: [("de", vec!["的", "得", "地"]), ("yi", vec!["一", "以"]), ...]
@@ -553,7 +578,7 @@ pub fn format_pinyin_output(
 /// # Examples
 ///
 /// ```rust
-/// # use study_rust_kanji::{HanziRecord, HanziOnset, HanziRime, group_by_tone};
+/// # use study_rust_hanzi::{HanziRecord, HanziOnset, HanziRime, group_by_tone};
 /// # let records = vec![]; // Placeholder for actual records
 /// if let Some(tone_groups) = group_by_tone(&records, "ma", false) {
 ///     // tone_groups: [(1, "mā", vec!["妈"]), (3, "mǎ", vec!["马"]), ...]
@@ -630,7 +655,7 @@ pub fn group_by_tone(
 /// # Examples
 ///
 /// ```rust
-/// # use study_rust_kanji::format_tone_output;
+/// # use study_rust_hanzi::format_tone_output;
 /// let tone_data = vec![
 ///     (1, "mā".to_string(), vec!["妈".to_string()]),
 ///     (3, "mǎ".to_string(), vec!["马".to_string(), "码".to_string()]),
@@ -643,7 +668,7 @@ pub fn group_by_tone(
 ///
 /// This function is typically used in conjunction with [`group_by_tone`]:
 /// ```rust,no_run
-/// # use study_rust_kanji::{group_by_tone, format_tone_output};
+/// # use study_rust_hanzi::{group_by_tone, format_tone_output};
 /// # let records = vec![]; // Placeholder
 /// if let Some(tone_groups) = group_by_tone(&records, "ma", false) {
 ///     let formatted = format_tone_output(&tone_groups);
@@ -1129,6 +1154,39 @@ mod tests {
         assert_eq!(tone_groups.len(), 2);
         assert_eq!(tone_groups[0].0, 3); // tone 3 comes first
         assert_eq!(tone_groups[1].0, 5); // tone 5 comes after
+    }
+
+    #[test]
+    fn test_hanzi_onset_as_str() {
+        // Test single character onsets
+        assert_eq!(HanziOnset::B.as_str(), "b");
+        assert_eq!(HanziOnset::P.as_str(), "p");
+        assert_eq!(HanziOnset::M.as_str(), "m");
+        assert_eq!(HanziOnset::F.as_str(), "f");
+        assert_eq!(HanziOnset::D.as_str(), "d");
+        assert_eq!(HanziOnset::T.as_str(), "t");
+        assert_eq!(HanziOnset::N.as_str(), "n");
+        assert_eq!(HanziOnset::Z.as_str(), "z");
+        assert_eq!(HanziOnset::C.as_str(), "c");
+        assert_eq!(HanziOnset::S.as_str(), "s");
+        assert_eq!(HanziOnset::L.as_str(), "l");
+        assert_eq!(HanziOnset::R.as_str(), "r");
+        assert_eq!(HanziOnset::J.as_str(), "j");
+        assert_eq!(HanziOnset::Q.as_str(), "q");
+        assert_eq!(HanziOnset::X.as_str(), "x");
+        assert_eq!(HanziOnset::G.as_str(), "g");
+        assert_eq!(HanziOnset::K.as_str(), "k");
+        assert_eq!(HanziOnset::H.as_str(), "h");
+        assert_eq!(HanziOnset::Y.as_str(), "y");
+        assert_eq!(HanziOnset::W.as_str(), "w");
+
+        // Test compound onsets (kebab-case format)
+        assert_eq!(HanziOnset::Zh.as_str(), "zh");
+        assert_eq!(HanziOnset::Ch.as_str(), "ch");
+        assert_eq!(HanziOnset::Sh.as_str(), "sh");
+
+        // Test None case
+        assert_eq!(HanziOnset::None.as_str(), "none");
     }
 
     #[test]
