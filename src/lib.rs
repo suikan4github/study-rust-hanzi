@@ -169,7 +169,7 @@ impl std::str::FromStr for HanziOnset {
             "y" => Ok(HanziOnset::Y),
             "w" => Ok(HanziOnset::W),
             "none" => Ok(HanziOnset::None),
-            _ => Err(format!("Invalid onset: '{}'", s)),
+            _ => Err(format!("Invalid onset: '{s}'")),
         }
     }
 }
