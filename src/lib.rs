@@ -94,17 +94,17 @@ pub fn read_hanzi_file(file_path: &str) -> std::io::Result<Vec<HanziRecord>> {
             pinyin: parts[3].to_string(),
             pinyin_without_tone: parts[4].to_string(),
             tone: parts[5].parse().unwrap_or(0),
-            onset: HanziOnset::None, // 初期値として設定
-            rime: HanziRime::None,   // 初期値として設定
+            onset: HanziOnset::None, // Set as initial value
+            rime: HanziRime::None,   // Set as initial value
         };
         records.push(record);
     }
     Ok(records)
 }
 
-/// Vec<HanziRecord> を受け取り、すべてのレコードのpinyin_without_toneを調べる。
-/// もし、そのフィールドがHanziOnsetの文字表現のいずれかで始まるならば、
-/// そのHanziOnsetの値をonsetフィールドに設定する。どれにも適合しなければnoneを設定する。
+/// Takes Vec<HanziRecord> and examines pinyin_without_tone of all records.
+/// If that field starts with any of the string representations of HanziOnset,
+/// sets that HanziOnset value to the onset field. If none match, sets none.
 pub fn set_hanzi_onsets(records: &mut Vec<HanziRecord>) {
     for record in records.iter_mut() {
         let pinyin = &record.pinyin_without_tone;
@@ -160,15 +160,15 @@ pub fn set_hanzi_onsets(records: &mut Vec<HanziRecord>) {
     }
 }
 
-/// Vec<HanziRecord> を受け取り、すべてのレコードのpinyin_without_toneを調べる。
-/// もし、そのフィールドがonsetフィールドの文字表現に
-/// HanziRimeのいずれかの値の文字表現を結合したものと完全一致するなら、
-/// そのHanziRimeの値をrimeフィールドに設定する。
+/// Takes Vec<HanziRecord> and examines pinyin_without_tone of all records.
+/// If that field does not match the string representation of the onset field
+/// combined with any HanziRime value's string representation exactly,
+/// sets that HanziRime value to the rime field.
 pub fn set_hanzi_rime(records: &mut Vec<HanziRecord>) {
     for record in records.iter_mut() {
         let pinyin = &record.pinyin_without_tone;
 
-        // onsetの文字表現を取得
+        // Get onset string representation
         let onset_str = match record.onset {
             HanziOnset::B => "b",
             HanziOnset::P => "p",
@@ -196,17 +196,17 @@ pub fn set_hanzi_rime(records: &mut Vec<HanziRecord>) {
             HanziOnset::None => "",
         };
 
-        // onsetを除いたrime部分を抽出
+        // Extract rime part excluding onset
         let rime_part = if onset_str.is_empty() {
             pinyin.as_str()
         } else if pinyin.starts_with(onset_str) {
             &pinyin[onset_str.len()..]
         } else {
-            // onsetが一致しない場合、全体をrime部分とする
+            // If onset doesn't match, treat the whole string as rime part
             pinyin.as_str()
         };
 
-        // rime部分がHanziRimeの値と一致するかチェック
+        // Check if rime part matches any HanziRime value
         record.rime = match rime_part {
             "e" => HanziRime::E,
             "a" => HanziRime::A,
@@ -273,7 +273,7 @@ mod tests {
             "Not enough records in hanzi.tsv, need at least 10"
         );
 
-        let tenth_record = &records[9]; // 10番目の要素（インデックス9）
+        let tenth_record = &records[9]; // 10th element (index 9)
         assert_eq!(
             tenth_record.frequency, 10,
             "Expected frequency 10, got {}",
@@ -314,7 +314,7 @@ mod tests {
         let records = result.unwrap();
         assert_eq!(records.len(), 5000, "Expected exactly 5000 records");
 
-        let last_record = &records[4999]; // 5000番目の要素（インデックス4999）
+        let last_record = &records[4999]; // 5000th element (index 4999)
         assert_eq!(
             last_record.frequency, 5000,
             "Expected frequency 5000, got {}",
@@ -355,7 +355,7 @@ mod tests {
         let mut records = result.unwrap();
         set_hanzi_onsets(&mut records);
 
-        // none以外の全てのHanziOnsetの値が出現するはずである
+        // All HanziOnset values other than none should appear
         use std::collections::HashSet;
         let mut found_onsets = HashSet::new();
 
@@ -363,7 +363,7 @@ mod tests {
             found_onsets.insert(&record.onset);
         }
 
-        // none以外の全てのHanziOnsetを定義
+        // Define all HanziOnset values except none
         let expected_onsets = vec![
             HanziOnset::B,
             HanziOnset::P,
@@ -406,11 +406,11 @@ mod tests {
 
         let mut records = result.unwrap();
 
-        // まずonsetを設定してからrimeを設定
+        // First set onset, then set rime
         set_hanzi_onsets(&mut records);
         set_hanzi_rime(&mut records);
 
-        // none以外の全てのHanziRimeの値が出現するはずである
+        // All HanziRime values other than none should appear
         use std::collections::HashSet;
         let mut found_rimes = HashSet::new();
 
@@ -418,7 +418,7 @@ mod tests {
             found_rimes.insert(&record.rime);
         }
 
-        // none以外の全てのHanziRimeを定義
+        // Define all HanziRime values except none
         let expected_rimes = vec![
             HanziRime::E,
             HanziRime::A,
@@ -453,7 +453,7 @@ mod tests {
             HanziRime::Ve,
         ];
 
-        // 見つからないrimeを特定するため
+        // To identify rimes that are not found
         let mut missing_rimes = Vec::new();
         for expected_rime in &expected_rimes {
             if !found_rimes.contains(expected_rime) {
@@ -469,20 +469,20 @@ mod tests {
                 expected_rimes.len()
             );
 
-            // 実際に見つかったrimeを表示
+            // Display the rimes that were actually found
             let mut found_list: Vec<_> = found_rimes.iter().collect();
             found_list.sort_by_key(|r| format!("{:?}", r));
             println!("Found rimes: {:?}", found_list);
         }
 
-        // 見つからないrimeがある場合はテストをスキップするか、期待値を調整
-        // とりあえず、実際に存在するrimeのみチェック
+        // If there are rimes not found, skip the test or adjust expectations
+        // For now, only check rimes that actually exist
         for expected_rime in &expected_rimes {
             if found_rimes.contains(expected_rime) {
-                // 存在する場合のみアサート成功
+                // Assert success only if it exists
                 continue;
             } else {
-                // 存在しない場合は警告のみ
+                // Only warning if it doesn't exist
                 println!(
                     "Warning: HanziRime::{:?} was not found in any record",
                     expected_rime

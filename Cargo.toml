@@ -2,7 +2,7 @@
 name = "study-rust-kanji"
 version = "0.1.0"
 edition = "2021"
-description = "漢字学習のためのRustプログラム"
+description = "Rust program for Hanzi learning"
 
 [lib]
 name = "study_rust_kanji"
