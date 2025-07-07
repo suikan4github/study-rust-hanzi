@@ -20,11 +20,17 @@ enum Commands {
         /// Fold long lines when character count exceeds specified value (default: 50)
         #[arg(short = 'f', long, value_name = "WIDTH", default_missing_value = "50", num_args = 0..=1)]
         fold: Option<usize>,
+        /// Use traditional characters instead of simplified
+        #[arg(short = 'r', long)]
+        traditional: bool,
     },
     /// Show characters by tone for specified pinyin
     ByTone {
         /// The pinyin (without tone marks) to search for
         pinyin: String,
+        /// Use traditional characters instead of simplified
+        #[arg(short = 'r', long)]
+        traditional: bool,
     },
     /// Generate shell completion scripts
     GenerateCompletion {
@@ -34,15 +40,16 @@ enum Commands {
     },
 }
 
-fn process_by_pinyin(fold_size: Option<usize>) {
+fn process_by_pinyin(fold_size: Option<usize>, use_traditional: bool) {
     match read_hanzi_file("hanzi.tsv") {
         Ok(records) => {
             // Group characters by pinyin_without_tone and collect them in frequency order
             let mut pinyin_groups: HashMap<&str, Vec<&str>> = HashMap::new();
             for record in &records {
+                let character = if use_traditional { &record.traditional } else { &record.simplified };
                 pinyin_groups.entry(&record.pinyin_without_tone)
                     .or_insert_with(Vec::new)
-                    .push(&record.simplified);
+                    .push(character);
             }
             
             // Sort by frequency (descending) and then by pinyin (ascending)
@@ -92,7 +99,7 @@ fn process_by_pinyin(fold_size: Option<usize>) {
     }
 }
 
-fn process_by_tone(target_pinyin: &str) {
+fn process_by_tone(target_pinyin: &str, use_traditional: bool) {
     match read_hanzi_file("hanzi.tsv") {
         Ok(records) => {
             let matching_records: Vec<_> = records
@@ -106,9 +113,10 @@ fn process_by_tone(target_pinyin: &str) {
                 // Group by tone and collect both characters and representative pinyin
                 let mut tone_groups: HashMap<u32, (Vec<&str>, &str)> = HashMap::new();
                 for record in matching_records {
+                    let character = if use_traditional { &record.traditional } else { &record.simplified };
                     let entry = tone_groups.entry(record.tone)
                         .or_insert_with(|| (Vec::new(), &record.pinyin));
-                    entry.0.push(&record.simplified);
+                    entry.0.push(character);
                 }
                 
                 // Sort by tone (1, 2, 3, 4, 5 for neutral tone)
@@ -136,11 +144,11 @@ fn main() {
     let args = Args::parse();
     
     match args.command {
-        Commands::ByPinyin { fold } => {
-            process_by_pinyin(fold);
+        Commands::ByPinyin { fold, traditional } => {
+            process_by_pinyin(fold, traditional);
         }
-        Commands::ByTone { pinyin } => {
-            process_by_tone(&pinyin);
+        Commands::ByTone { pinyin, traditional } => {
+            process_by_tone(&pinyin, traditional);
         }
         Commands::GenerateCompletion { shell } => {
             let mut cmd = Args::command();
