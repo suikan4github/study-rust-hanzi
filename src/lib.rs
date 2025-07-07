@@ -115,6 +115,65 @@ impl HanziOnset {
     }
 }
 
+impl std::str::FromStr for HanziOnset {
+    type Err = String;
+
+    /// Parses a string into a HanziOnset
+    ///
+    /// This method converts a string representation back into a HanziOnset variant.
+    /// It accepts both the exact case-sensitive variants and their lowercase equivalents.
+    ///
+    /// # Arguments
+    ///
+    /// * `s` - The string to parse
+    ///
+    /// # Returns
+    ///
+    /// * `Ok(HanziOnset)` - If the string matches a valid onset
+    /// * `Err(String)` - If the string doesn't match any known onset
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use std::str::FromStr;
+    /// use study_rust_hanzi::HanziOnset;
+    ///
+    /// assert_eq!(HanziOnset::from_str("b"), Ok(HanziOnset::B));
+    /// assert_eq!(HanziOnset::from_str("zh"), Ok(HanziOnset::Zh));
+    /// assert_eq!(HanziOnset::from_str("none"), Ok(HanziOnset::None));
+    /// assert!(HanziOnset::from_str("invalid").is_err());
+    /// ```
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s.to_lowercase().as_str() {
+            "b" => Ok(HanziOnset::B),
+            "p" => Ok(HanziOnset::P),
+            "m" => Ok(HanziOnset::M),
+            "f" => Ok(HanziOnset::F),
+            "d" => Ok(HanziOnset::D),
+            "t" => Ok(HanziOnset::T),
+            "n" => Ok(HanziOnset::N),
+            "z" => Ok(HanziOnset::Z),
+            "c" => Ok(HanziOnset::C),
+            "s" => Ok(HanziOnset::S),
+            "l" => Ok(HanziOnset::L),
+            "zh" => Ok(HanziOnset::Zh),
+            "ch" => Ok(HanziOnset::Ch),
+            "sh" => Ok(HanziOnset::Sh),
+            "r" => Ok(HanziOnset::R),
+            "j" => Ok(HanziOnset::J),
+            "q" => Ok(HanziOnset::Q),
+            "x" => Ok(HanziOnset::X),
+            "g" => Ok(HanziOnset::G),
+            "k" => Ok(HanziOnset::K),
+            "h" => Ok(HanziOnset::H),
+            "y" => Ok(HanziOnset::Y),
+            "w" => Ok(HanziOnset::W),
+            "none" => Ok(HanziOnset::None),
+            _ => Err(format!("Invalid onset: '{}'", s)),
+        }
+    }
+}
+
 /// Enumeration of Hanzi rime sounds (vowels and final consonants)
 ///
 /// This enum represents all possible rime sounds in Mandarin Chinese pinyin.
@@ -1216,5 +1275,38 @@ mod tests {
             result_with_u.is_some(),
             "Search with 'ü' should find characters"
         );
+    }
+
+    #[test]
+    fn test_onset_from_str() {
+        use std::str::FromStr;
+
+        // Test valid single-character onsets
+        assert_eq!(HanziOnset::from_str("b"), Ok(HanziOnset::B));
+        assert_eq!(HanziOnset::from_str("B"), Ok(HanziOnset::B));
+        assert_eq!(HanziOnset::from_str("p"), Ok(HanziOnset::P));
+        assert_eq!(HanziOnset::from_str("m"), Ok(HanziOnset::M));
+
+        // Test valid multi-character onsets
+        assert_eq!(HanziOnset::from_str("zh"), Ok(HanziOnset::Zh));
+        assert_eq!(HanziOnset::from_str("Zh"), Ok(HanziOnset::Zh));
+        assert_eq!(HanziOnset::from_str("ZH"), Ok(HanziOnset::Zh));
+        assert_eq!(HanziOnset::from_str("ch"), Ok(HanziOnset::Ch));
+        assert_eq!(HanziOnset::from_str("sh"), Ok(HanziOnset::Sh));
+
+        // Test special case
+        assert_eq!(HanziOnset::from_str("none"), Ok(HanziOnset::None));
+        assert_eq!(HanziOnset::from_str("None"), Ok(HanziOnset::None));
+        assert_eq!(HanziOnset::from_str("NONE"), Ok(HanziOnset::None));
+
+        // Test invalid inputs
+        assert!(HanziOnset::from_str("invalid").is_err());
+        assert!(HanziOnset::from_str("").is_err());
+        assert!(HanziOnset::from_str("zz").is_err());
+
+        // Test error message
+        let result = HanziOnset::from_str("invalid");
+        assert!(result.is_err());
+        assert_eq!(result.unwrap_err(), "Invalid onset: 'invalid'");
     }
 }
