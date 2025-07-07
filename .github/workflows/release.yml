@@ -72,18 +72,40 @@ jobs:
       with:
         targets: ${{ matrix.target }}
 
-    - name: Update Cargo.toml version for build
+    - name: Update Cargo.toml version for build (Unix)
+      if: matrix.os != 'windows-latest'
       run: |
         # Extract version from tag (remove 'v' prefix)
         VERSION=${GITHUB_REF_NAME#v}
         echo "Updating version to: $VERSION for build"
         
-        # Update version in Cargo.toml using perl (cross-platform compatible)
-        perl -pi -e "s/^version = \".*\"/version = \"$VERSION\"/" Cargo.toml
+        # Update version in Cargo.toml using sed with platform-specific syntax
+        if [[ "$OSTYPE" == "darwin"* ]]; then
+          # macOS (BSD sed requires empty string for -i)
+          sed -i '' "s/^version = \".*\"/version = \"$VERSION\"/" Cargo.toml
+        else
+          # Linux (GNU sed)
+          sed -i "s/^version = \".*\"/version = \"$VERSION\"/" Cargo.toml
+        fi
         
         # Verify the change
         echo "Updated Cargo.toml for build:"
         grep "^version" Cargo.toml
+
+    - name: Update Cargo.toml version for build (Windows)
+      if: matrix.os == 'windows-latest'
+      shell: pwsh
+      run: |
+        # Extract version from tag (remove 'v' prefix)
+        $VERSION = $env:GITHUB_REF_NAME -replace '^v', ''
+        Write-Host "Updating version to: $VERSION for build"
+        
+        # Update version in Cargo.toml using PowerShell
+        (Get-Content Cargo.toml) -replace '^version = ".*"', "version = `"$VERSION`"" | Set-Content Cargo.toml
+        
+        # Verify the change
+        Write-Host "Updated Cargo.toml for build:"
+        Select-String "^version" Cargo.toml
 
     - name: Cache dependencies
       uses: Swatinem/rust-cache@v2
