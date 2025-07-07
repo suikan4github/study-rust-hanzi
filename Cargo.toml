@@ -17,7 +17,7 @@ path = "src/lib.rs"
 doc = true
 
 [[bin]]
-name = "study-rust-kanji"
+name = "study-rust-hanzi"
 path = "src/main.rs"
 doc = false
 

@@ -49,19 +49,19 @@ jobs:
           - os: ubuntu-latest
             target: x86_64-unknown-linux-gnu
             suffix: ""
-            archive_name: study-rust-kanji-linux-x86_64.tar.gz
+            archive_ext: tar.gz
           - os: windows-latest
             target: x86_64-pc-windows-msvc
             suffix: ".exe"
-            archive_name: study-rust-kanji-windows-x86_64.zip
+            archive_ext: zip
           - os: macos-latest
             target: x86_64-apple-darwin
             suffix: ""
-            archive_name: study-rust-kanji-macos-x86_64.tar.gz
+            archive_ext: tar.gz
           - os: macos-latest
             target: aarch64-apple-darwin
             suffix: ""
-            archive_name: study-rust-kanji-macos-arm64.tar.gz
+            archive_ext: tar.gz
 
     steps:
     - name: Checkout repository
@@ -71,6 +71,22 @@ jobs:
       uses: dtolnay/rust-toolchain@stable
       with:
         targets: ${{ matrix.target }}
+
+    - name: Set archive name
+      id: archive
+      run: |
+        VERSION=${GITHUB_REF_NAME#v}
+        OS_NAME=""
+        case "${{ matrix.target }}" in
+          x86_64-unknown-linux-gnu) OS_NAME="linux-x86_64" ;;
+          x86_64-pc-windows-msvc) OS_NAME="windows-x86_64" ;;
+          x86_64-apple-darwin) OS_NAME="macos-x86_64" ;;
+          aarch64-apple-darwin) OS_NAME="macos-arm64" ;;
+        esac
+        ARCHIVE_NAME="study-rust-hanzi-${GITHUB_REF_NAME}-${OS_NAME}.${{ matrix.archive_ext }}"
+        echo "archive_name=${ARCHIVE_NAME}" >> $GITHUB_OUTPUT
+        echo "Archive name will be: ${ARCHIVE_NAME}"
+      shell: bash
 
     - name: Update Cargo.toml version for build (Unix)
       if: matrix.os != 'windows-latest'
@@ -119,17 +135,17 @@ jobs:
       if: matrix.os != 'windows-latest'
       run: |
         cd target/${{ matrix.target }}/release
-        tar -czf ../../../${{ matrix.archive_name }} study-rust-kanji${{ matrix.suffix }} ../../../hanzi.tsv
+        tar -czf ../../../${{ steps.archive.outputs.archive_name }} study-rust-hanzi${{ matrix.suffix }} ../../../hanzi.tsv
 
     - name: Create archive (Windows)
       if: matrix.os == 'windows-latest'
       run: |
         cd target/${{ matrix.target }}/release
-        7z a ../../../${{ matrix.archive_name }} study-rust-kanji${{ matrix.suffix }} ../../../hanzi.tsv
+        7z a ../../../${{ steps.archive.outputs.archive_name }} study-rust-hanzi${{ matrix.suffix }} ../../../hanzi.tsv
 
     - name: Upload Release Asset
       uses: softprops/action-gh-release@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        files: ./${{ matrix.archive_name }}
+        files: ./${{ steps.archive.outputs.archive_name }}
