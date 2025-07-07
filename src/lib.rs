@@ -482,9 +482,7 @@ mod tests {
                 continue;
             } else {
                 // Only warning if it doesn't exist
-                println!(
-                    "Warning: HanziRime::{expected_rime:?} was not found in any record"
-                );
+                println!("Warning: HanziRime::{expected_rime:?} was not found in any record");
             }
         }
     }
