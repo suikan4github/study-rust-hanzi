@@ -1,6 +1,6 @@
 [package]
 name = "study-rust-kanji"
-version = "0.0.4"
+version = "1.0.0"
 edition = "2021"
 description = "Rust program for Hanzi learning and phonetic analysis"
 authors = ["suikan4github"]
