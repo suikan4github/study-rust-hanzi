@@ -15,9 +15,13 @@ struct Args {
     /// Show characters by tone for specified pinyin
     #[arg(short = 't', long, group = "mode")]
     by_tone: Option<String>,
+    
+    /// Fold long lines when character count exceeds specified value (default: 50)
+    #[arg(short = 'f', long, value_name = "WIDTH", default_missing_value = "50", num_args = 0..=1)]
+    fold: Option<usize>,
 }
 
-fn process_by_pinyin() {
+fn process_by_pinyin(fold_size: Option<usize>) {
     match read_hanzi_file("hanzi.tsv") {
         Ok(records) => {
             // Group characters by pinyin_without_tone and collect them in frequency order
@@ -36,8 +40,35 @@ fn process_by_pinyin() {
             
             for (pinyin, characters) in sorted_pinyins {
                 let char_list = characters.join("");
-                if let Err(_) = writeln!(std::io::stdout(), "{:<8}: {:3} {}", pinyin, characters.len(), char_list) {
-                    break; // Broken pipe handling: exit quietly when pipe is closed
+                
+                if let Some(fold_size) = fold_size {
+                    if char_list.len() > fold_size {
+                        // Fold long lines: first fold_size chars on the same line as count
+                        let chars: Vec<char> = char_list.chars().collect();
+                        let first_chunk: String = chars.iter().take(fold_size).collect();
+                        
+                        if let Err(_) = writeln!(std::io::stdout(), "{:<8}: {:3} {}", pinyin, characters.len(), first_chunk) {
+                            break;
+                        }
+                        
+                        // Remaining characters in chunks of fold_size
+                        for chunk in chars.iter().skip(fold_size).collect::<Vec<_>>().chunks(fold_size) {
+                            let chunk_str: String = chunk.iter().map(|c| **c).collect();
+                            if let Err(_) = writeln!(std::io::stdout(), "              {}", chunk_str) {
+                                break;
+                            }
+                        }
+                    } else {
+                        // Normal single line output
+                        if let Err(_) = writeln!(std::io::stdout(), "{:<8}: {:3} {}", pinyin, characters.len(), char_list) {
+                            break; // Broken pipe handling: exit quietly when pipe is closed
+                        }
+                    }
+                } else {
+                    // Normal single line output (no folding)
+                    if let Err(_) = writeln!(std::io::stdout(), "{:<8}: {:3} {}", pinyin, characters.len(), char_list) {
+                        break; // Broken pipe handling: exit quietly when pipe is closed
+                    }
                 }
             }
         }
@@ -88,7 +119,7 @@ fn main() {
     let args = Args::parse();
     
     if args.by_pinyin {
-        process_by_pinyin();
+        process_by_pinyin(args.fold);
     }
     
     if let Some(target_pinyin) = args.by_tone {
