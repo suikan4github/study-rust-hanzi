@@ -6,6 +6,8 @@ A command-line tool for analyzing Chinese characters (Hanzi) written in Rust. Th
 
 - **By Pinyin Analysis**: List unique pinyin pronunciations with frequency counts and associated characters
 - **By Tone Analysis**: Show characters grouped by tone for a specific pinyin pronunciation
+- **Traditional/Simplified Character Support**: Switch between simplified and traditional Chinese characters
+- **V-to-Ü Replacement**: Automatically converts 'v' to 'ü' in pinyin input for easier typing
 - **Line Folding**: Wrap long character lists for better readability
 - **Shell Completion**: Generate completion scripts for various shells
 - **Robust Error Handling**: Handles broken pipes gracefully when used with tools like `head`
@@ -36,7 +38,7 @@ The tool operates on a TSV file named `hanzi.tsv` in the current directory. The 
 #### List Pinyin by Frequency
 
 ```bash
-./study-rust-kanji by-pinyin
+./study-rust-kanji by-pinyin [OPTIONS]
 ```
 
 This command lists all unique pinyin pronunciations sorted by frequency (most common first), showing:
@@ -44,10 +46,15 @@ This command lists all unique pinyin pronunciations sorted by frequency (most co
 - Count of characters with that pronunciation
 - All characters with that pronunciation
 
+**Options:**
+- `--traditional`, `-r`: Use traditional characters instead of simplified
+- `--fold [WIDTH]`, `-f [WIDTH]`: Fold long lines (default width: 50)
+
 Example output:
 ```
-ji      :  82 机己及几计基即记济极击集级技际纪继急激既积吉迹疾季辑鸡剂绩籍寄挤寂祭忌肌玑饥脊稽冀藉圾姬嫉妓棘讥畸缉叽矶羁伎汲诘悸暨亟笈戟唧骥稷瘠跻嵇髻鲫岌偈蓟箕畿觊乩犄霁麂楫芨屐
-yi      :  79 一以意已义议易医依益疑异衣伊艺移亦遗亿译役仪宜翼忆椅抑疫乙毅矣谊姨夷逸溢蚁怡倚裔懿颐绎奕咦邑胰诣贻揖彝醫驿漪翌臆沂佚屹轶熠弋诒弈翊呓噫蜴壹薏迤刈咿铱旖羿苡缢翳
+ji      :  82 机己及几计基即记济极击集级技际纪继急激既积吉迹疾季辑...
+yi      :  79 一以意已义议易医依益疑异衣伊艺移亦遗亿译役仪宜翼忆椅...
+yu      :  69 于与语育预余域鱼遇予雨玉欲宇愈御狱誉渔羽愚郁豫愉裕...
 ```
 
 #### Fold Long Lines
@@ -59,16 +66,38 @@ Use the `--fold` option to wrap long character lists:
 ./study-rust-kanji by-pinyin -f    # Uses default fold width of 50
 ```
 
+Example with folding at 30 characters:
+```bash
+./study-rust-kanji by-pinyin -f 30
+```
+
+Output:
+```
+ji      :  82 机己及几计基即记济极击集级技际纪继急激既积吉迹疾季辑鸡剂绩籍
+              寄挤寂祭忌肌玑饥脊稽冀藉圾姬嫉妓棘讥畸缉叽矶羁伎汲诘悸暨亟笈
+              戟唧骥稷瘠跻嵇髻鲫岌偈蓟箕畿觊乩犄霁麂楫芨屐
+yi      :  79 一以意已义议易医依益疑异衣伊艺移亦遗亿译役仪宜翼忆椅抑疫乙毅
+              矣谊姨夷逸溢蚁怡倚裔懿颐绎奕咦邑胰诣贻揖彝醫驿漪翌臆沂佚屹轶
+              熠弋诒弈翊呓噫蜴壹薏迤刈咿铱旖羿苡缢翳
+```
+
 #### Show Characters by Tone
 
 ```bash
-./study-rust-kanji by-tone <pinyin>
+./study-rust-kanji by-tone <pinyin> [OPTIONS]
 ```
 
-This command shows all characters for a specific pinyin pronunciation, grouped by tone:
+This command shows all characters for a specific pinyin pronunciation, grouped by tone.
+
+**Options:**
+- `--traditional`, `-r`: Use traditional characters instead of simplified
+
+**V-to-Ü Replacement:** You can use 'v' as a substitute for 'ü' when typing. For example, `nv` will be automatically converted to `nü`.
 
 ```bash
 ./study-rust-kanji by-tone ji
+./study-rust-kanji by-tone nv    # Automatically converted to "nü"
+./study-rust-kanji by-tone lv    # Automatically converted to "lü"
 ```
 
 Example output:
@@ -89,14 +118,49 @@ Supported shells: `bash`, `zsh`, `fish`, `powershell`, `elvish`
 
 See [COMPLETION.md](COMPLETION.md) for detailed installation instructions.
 
+#### Character Set Options
+
+Both `by-pinyin` and `by-tone` commands support character set selection:
+
+- **Default**: Shows simplified Chinese characters
+- **Traditional**: Use `--traditional` or `-r` flag to show traditional Chinese characters
+
+```bash
+# Simplified characters (default)
+./study-rust-kanji by-pinyin
+
+# Traditional characters
+./study-rust-kanji by-pinyin --traditional
+./study-rust-kanji by-tone ma -r
+```
+
+#### Input Convenience Features
+
+**V-to-Ü Replacement**: When using the `by-tone` command, you can type 'v' instead of 'ü' for easier keyboard input. The tool automatically converts:
+- `nv` → `nü` (女)
+- `lv` → `lü` (律, 旅, etc.)
+- `xv` → `xü` (虚, etc.)
+
+This feature is especially helpful when using keyboards without easy access to the ü character.
+
 ### Examples
 
 ```bash
 # Get top 10 most common pinyin pronunciations
 ./study-rust-kanji by-pinyin | head -10
 
+# Show traditional characters instead of simplified
+./study-rust-kanji by-pinyin --traditional
+
 # Find all characters pronounced "ma"
 ./study-rust-kanji by-tone ma
+
+# Find characters with "ü" sound using "v" replacement
+./study-rust-kanji by-tone nv     # Same as "nü"
+./study-rust-kanji by-tone lv     # Same as "lü"
+
+# Use traditional characters for tone analysis
+./study-rust-kanji by-tone ma --traditional
 
 # Generate bash completion script
 ./study-rust-kanji generate-completion bash > completion.bash
