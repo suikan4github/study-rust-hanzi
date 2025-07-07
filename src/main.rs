@@ -48,13 +48,13 @@ fn process_by_pinyin(fold_size: Option<usize>, use_traditional: bool) {
             let output_lines = format_pinyin_output(&grouped_data, fold_size);
 
             for line in output_lines {
-                if writeln!(std::io::stdout(), "{}", line).is_err() {
+                if writeln!(std::io::stdout(), "{line}").is_err() {
                     break; // Broken pipe handling: exit quietly when pipe is closed
                 }
             }
         }
         Err(e) => {
-            eprintln!("Error reading hanzi.tsv: {}", e);
+            eprintln!("Error reading hanzi.tsv: {e}");
             std::process::exit(1);
         }
     }
@@ -69,15 +69,15 @@ fn process_by_tone(target_pinyin: &str, use_traditional: bool) {
             Some(tone_groups) => {
                 let output_lines = format_tone_output(&tone_groups);
                 for line in output_lines {
-                    println!("{}", line);
+                    println!("{line}");
                 }
             }
             None => {
-                println!("No characters found for pinyin: {}", normalized_pinyin);
+                println!("No characters found for pinyin: {normalized_pinyin}");
             }
         },
         Err(e) => {
-            eprintln!("Error reading hanzi.tsv: {}", e);
+            eprintln!("Error reading hanzi.tsv: {e}");
             std::process::exit(1);
         }
     }
@@ -152,7 +152,7 @@ pub fn format_pinyin_output(
                     .chunks(fold_size)
                 {
                     let chunk_str: String = chunk.iter().map(|c| **c).collect();
-                    output_lines.push(format!("              {}", chunk_str));
+                    output_lines.push(format!("              {chunk_str}"));
                 }
             } else {
                 output_lines.push(format!(
@@ -226,7 +226,7 @@ pub fn format_tone_output(tone_groups: &[(u32, String, Vec<String>)]) -> Vec<Str
         .iter()
         .map(|(_tone, pinyin, characters)| {
             let char_list = characters.join("");
-            format!("{}: {}", pinyin, char_list)
+            format!("{pinyin}: {char_list}")
         })
         .collect()
 }
@@ -246,7 +246,7 @@ fn main() {
         }
         Commands::GenerateCompletion { shell } => {
             let mut cmd = Args::command();
-            eprintln!("Generating completion file for {}...", shell);
+            eprintln!("Generating completion file for {shell}...");
             print_completions(shell, &mut cmd);
         }
     }
@@ -357,7 +357,7 @@ mod tests {
         assert!(output[0].contains("test"));
         assert!(output[0].contains("5")); // character count
         assert!(
-            output[1].trim().len() > 0,
+            !output[1].trim().is_empty(),
             "Second line should contain remaining characters"
         );
     }

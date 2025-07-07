@@ -393,8 +393,7 @@ mod tests {
         for expected_onset in &expected_onsets {
             assert!(
                 found_onsets.contains(expected_onset),
-                "HanziOnset::{:?} was not found in any record",
-                expected_onset
+                "HanziOnset::{expected_onset:?} was not found in any record"
             );
         }
     }
@@ -462,7 +461,7 @@ mod tests {
         }
 
         if !missing_rimes.is_empty() {
-            println!("Missing rimes: {:?}", missing_rimes);
+            println!("Missing rimes: {missing_rimes:?}");
             println!(
                 "Found {} unique rimes out of {} expected",
                 found_rimes.len(),
@@ -471,8 +470,8 @@ mod tests {
 
             // Display the rimes that were actually found
             let mut found_list: Vec<_> = found_rimes.iter().collect();
-            found_list.sort_by_key(|r| format!("{:?}", r));
-            println!("Found rimes: {:?}", found_list);
+            found_list.sort_by_key(|r| format!("{r:?}"));
+            println!("Found rimes: {found_list:?}");
         }
 
         // If there are rimes not found, skip the test or adjust expectations
@@ -484,8 +483,7 @@ mod tests {
             } else {
                 // Only warning if it doesn't exist
                 println!(
-                    "Warning: HanziRime::{:?} was not found in any record",
-                    expected_rime
+                    "Warning: HanziRime::{expected_rime:?} was not found in any record"
                 );
             }
         }
