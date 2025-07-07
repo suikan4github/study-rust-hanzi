@@ -1,0 +1,151 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+  packages: write
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  create-release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    outputs:
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Create Release
+      id: create_release
+      uses: softprops/action-gh-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref_name }}
+        name: Release ${{ github.ref_name }}
+        body: |
+          Changes in this Release
+          - Clippy warnings and errors fixed
+          - Code formatting improvements
+          - CI/CD pipeline enhancements
+        draft: false
+        prerelease: false
+        generate_release_notes: true
+
+  build-release:
+    name: Build Release
+    runs-on: ${{ matrix.os }}
+    needs: create-release
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            suffix: ""
+            archive_ext: tar.gz
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            suffix: ".exe"
+            archive_ext: zip
+          - os: macos-latest
+            target: x86_64-apple-darwin
+            suffix: ""
+            archive_ext: tar.gz
+          - os: macos-latest
+            target: aarch64-apple-darwin
+            suffix: ""
+            archive_ext: tar.gz
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Install Rust toolchain
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        targets: ${{ matrix.target }}
+
+    - name: Set archive name
+      id: archive
+      run: |
+        VERSION=${GITHUB_REF_NAME#v}
+        OS_NAME=""
+        case "${{ matrix.target }}" in
+          x86_64-unknown-linux-gnu) OS_NAME="linux-x86_64" ;;
+          x86_64-pc-windows-msvc) OS_NAME="windows-x86_64" ;;
+          x86_64-apple-darwin) OS_NAME="macos-x86_64" ;;
+          aarch64-apple-darwin) OS_NAME="macos-arm64" ;;
+        esac
+        ARCHIVE_NAME="study-rust-hanzi-${GITHUB_REF_NAME}-${OS_NAME}.${{ matrix.archive_ext }}"
+        echo "archive_name=${ARCHIVE_NAME}" >> $GITHUB_OUTPUT
+        echo "Archive name will be: ${ARCHIVE_NAME}"
+      shell: bash
+
+    - name: Update Cargo.toml version for build (Unix)
+      if: matrix.os != 'windows-latest'
+      run: |
+        # Extract version from tag (remove 'v' prefix)
+        VERSION=${GITHUB_REF_NAME#v}
+        echo "Updating version to: $VERSION for build"
+        
+        # Update version in Cargo.toml using sed with platform-specific syntax
+        if [[ "$OSTYPE" == "darwin"* ]]; then
+          # macOS (BSD sed requires empty string for -i)
+          sed -i '' "s/^version = \".*\"/version = \"$VERSION\"/" Cargo.toml
+        else
+          # Linux (GNU sed)
+          sed -i "s/^version = \".*\"/version = \"$VERSION\"/" Cargo.toml
+        fi
+        
+        # Verify the change
+        echo "Updated Cargo.toml for build:"
+        grep "^version" Cargo.toml
+
+    - name: Update Cargo.toml version for build (Windows)
+      if: matrix.os == 'windows-latest'
+      shell: pwsh
+      run: |
+        # Extract version from tag (remove 'v' prefix)
+        $VERSION = $env:GITHUB_REF_NAME -replace '^v', ''
+        Write-Host "Updating version to: $VERSION for build"
+        
+        # Update version in Cargo.toml using PowerShell
+        (Get-Content Cargo.toml) -replace '^version = ".*"', "version = `"$VERSION`"" | Set-Content Cargo.toml
+        
+        # Verify the change
+        Write-Host "Updated Cargo.toml for build:"
+        Select-String "^version" Cargo.toml
+
+    - name: Cache dependencies
+      uses: Swatinem/rust-cache@v2
+      with:
+        key: ${{ matrix.target }}
+
+    - name: Build release binary
+      run: cargo build --release --target ${{ matrix.target }}
+
+    - name: Create archive (Unix)
+      if: matrix.os != 'windows-latest'
+      run: |
+        cd target/${{ matrix.target }}/release
+        tar -czf ../../../${{ steps.archive.outputs.archive_name }} study-rust-hanzi${{ matrix.suffix }} ../../../hanzi.tsv
+
+    - name: Create archive (Windows)
+      if: matrix.os == 'windows-latest'
+      run: |
+        cd target/${{ matrix.target }}/release
+        7z a ../../../${{ steps.archive.outputs.archive_name }} study-rust-hanzi${{ matrix.suffix }} ../../../hanzi.tsv
+
+    - name: Upload Release Asset
+      uses: softprops/action-gh-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        files: ./${{ steps.archive.outputs.archive_name }}

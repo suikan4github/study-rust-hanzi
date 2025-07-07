@@ -1,0 +1,26 @@
+[package]
+name = "study-rust-kanji"
+version = "1.0.0"
+edition = "2021"
+description = "Rust program for Hanzi learning and phonetic analysis"
+authors = ["suikan4github"]
+license = "MIT"
+repository = "https://github.com/suikan4github/study-rust-hanzi"
+documentation = "https://suikan4github.github.io/study-rust-hanzi/"
+readme = "README.md"
+keywords = ["chinese", "hanzi", "pinyin", "linguistics", "phonetics"]
+categories = ["command-line-utilities", "text-processing"]
+
+[lib]
+name = "study_rust_kanji"
+path = "src/lib.rs"
+doc = true
+
+[[bin]]
+name = "study-rust-hanzi"
+path = "src/main.rs"
+doc = false
+
+[dependencies]
+clap = { version = "4.0", features = ["derive"] }
+clap_complete = "4.0"
