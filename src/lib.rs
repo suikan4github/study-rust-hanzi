@@ -1,41 +1,41 @@
 //! # Hanzi Analysis Library
-//! 
+//!
 //! This library provides data structures and functions for analyzing Chinese characters (Hanzi)
 //! based on their pinyin pronunciation, including onset-rime analysis and various grouping
 //! and formatting operations.
-//! 
+//!
 //! ## Core Data Structures
-//! 
+//!
 //! - [`HanziRecord`]: Represents a single Chinese character with all its linguistic properties
 //! - [`HanziOnset`]: Enumeration of pinyin onset sounds (initial consonants)
 //! - [`HanziRime`]: Enumeration of pinyin rime sounds (vowels and final consonants)
-//! 
+//!
 //! ## Main Functions
-//! 
+//!
 //! - [`read_hanzi_file`]: Reads character data from TSV files
 //! - [`group_by_pinyin`]: Groups characters by pinyin pronunciation
 //! - [`group_by_tone`]: Groups characters by specific pinyin and tone
 //! - [`format_pinyin_output`]: Formats pinyin grouping results for display
 //! - [`format_tone_output`]: Formats tone grouping results for display
-//! 
+//!
 //! ## Linguistic Analysis
-//! 
+//!
 //! - [`set_hanzi_onsets`]: Analyzes and sets onset information for characters
 //! - [`set_hanzi_rime`]: Analyzes and sets rime information for characters
 
-use std::io::BufRead;
 use std::collections::HashMap;
+use std::io::BufRead;
 
 /// Enumeration of Hanzi onset sounds (initial consonants)
-/// 
+///
 /// This enum represents all possible onset sounds in Mandarin Chinese pinyin.
 /// Onsets are the initial consonant sounds that begin a syllable. Some syllables
 /// may have no onset (represented by `None`).
-/// 
+///
 /// # Examples of onsets
-/// 
+///
 /// - `B`: as in "bā" (八)
-/// - `Zh`: as in "zhōng" (中) 
+/// - `Zh`: as in "zhōng" (中)
 /// - `None`: as in "ā" (啊) - syllables starting with vowels
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum HanziOnset {
@@ -66,13 +66,13 @@ pub enum HanziOnset {
 }
 
 /// Enumeration of Hanzi rime sounds (vowels and final consonants)
-/// 
+///
 /// This enum represents all possible rime sounds in Mandarin Chinese pinyin.
 /// Rimes are the vowel and optional final consonant parts of a syllable that
 /// follow the onset. Every syllable must have a rime.
-/// 
+///
 /// # Examples of rimes
-/// 
+///
 /// - `A`: as in "mā" (妈) - simple vowel
 /// - `Ang`: as in "tāng" (汤) - vowel + nasal consonant
 /// - `Iang`: as in "liáng" (良) - complex vowel + nasal
@@ -114,13 +114,13 @@ pub enum HanziRime {
 }
 
 /// Represents a single Chinese character with all its linguistic and frequency data
-/// 
+///
 /// This structure contains comprehensive information about a Chinese character,
 /// including both simplified and traditional forms, pinyin pronunciation data,
 /// frequency information, and phonetic analysis (onset/rime breakdown).
-/// 
+///
 /// # Fields
-/// 
+///
 /// * `frequency` - Frequency rank of the character (lower numbers = more common)
 /// * `simplified` - Simplified Chinese character form
 /// * `traditional` - Traditional Chinese character form  
@@ -141,22 +141,22 @@ pub struct HanziRecord {
 }
 
 /// Reads a TSV file containing Hanzi data and returns a vector of HanziRecord
-/// 
+///
 /// This function parses a tab-separated values file where each line represents
 /// one Chinese character with its associated data. The expected format is:
 /// frequency, simplified, traditional, pinyin, pinyin_without_tone, tone
-/// 
+///
 /// # Arguments
-/// 
+///
 /// * `file_path` - Path to the TSV file to read
-/// 
+///
 /// # Returns
-/// 
+///
 /// * `Ok(Vec<HanziRecord>)` - Successfully parsed records
 /// * `Err(std::io::Error)` - File I/O error occurred
-/// 
+///
 /// # File Format
-/// 
+///
 /// Each line should contain 6 tab-separated fields:
 /// 1. Frequency rank (integer)
 /// 2. Simplified character (string)
@@ -164,7 +164,7 @@ pub struct HanziRecord {
 /// 4. Pinyin with tone marks (string)
 /// 5. Pinyin without tone marks (string)
 /// 6. Tone number (integer, 1-5)
-/// 
+///
 /// Lines with fewer than 6 fields are skipped. Invalid numbers default to 0.
 pub fn read_hanzi_file(file_path: &str) -> std::io::Result<Vec<HanziRecord>> {
     let mut records = Vec::new();
@@ -193,23 +193,23 @@ pub fn read_hanzi_file(file_path: &str) -> std::io::Result<Vec<HanziRecord>> {
 }
 
 /// Analyzes and sets the onset (initial consonant) for each character's pinyin
-/// 
+///
 /// This function examines the `pinyin_without_tone` field of each record and
 /// determines the appropriate onset classification based on the initial consonant(s).
 /// The onset field is updated in-place for each record.
-/// 
+///
 /// # Arguments
-/// 
+///
 /// * `records` - Mutable slice of HanziRecord to analyze
-/// 
+///
 /// # Onset Detection Rules
-/// 
+///
 /// - Multi-character onsets (zh, ch, sh) are checked first
 /// - Single-character onsets are checked next
 /// - If no onset matches, `HanziOnset::None` is assigned (vowel-initial syllables)
-/// 
+///
 /// # Examples
-/// 
+///
 /// - "zhong" → `HanziOnset::Zh`
 /// - "ma" → `HanziOnset::M`  
 /// - "an" → `HanziOnset::None`
@@ -269,29 +269,29 @@ pub fn set_hanzi_onsets(records: &mut [HanziRecord]) {
 }
 
 /// Analyzes and sets the rime (vowel + final consonant) for each character's pinyin
-/// 
+///
 /// This function determines the rime part of each character's pronunciation by
 /// removing the onset and matching the remaining sound to known rime patterns.
 /// The rime field is updated in-place for each record.
-/// 
+///
 /// # Arguments
-/// 
+///
 /// * `records` - Mutable slice of HanziRecord to analyze
-/// 
+///
 /// # Prerequisites
-/// 
+///
 /// This function should be called after `set_hanzi_onsets()` since it relies on
 /// the onset field being correctly set to determine the rime portion.
-/// 
+///
 /// # Rime Detection Process
-/// 
+///
 /// 1. Gets the string representation of the onset
 /// 2. Strips the onset from the pinyin to isolate the rime part
 /// 3. Matches the rime part against known rime patterns
 /// 4. Sets `HanziRime::None` if no pattern matches
-/// 
+///
 /// # Examples
-/// 
+///
 /// - "ma" (onset: M) → rime part "a" → `HanziRime::A`
 /// - "zhong" (onset: Zh) → rime part "ong" → `HanziRime::Ong`
 /// - "nü" (onset: N) → rime part "ü" → `HanziRime::V`
@@ -376,30 +376,30 @@ pub fn set_hanzi_rime(records: &mut [HanziRecord]) {
 }
 
 /// Groups Hanzi records by pinyin without tone marks
-/// 
+///
 /// Takes a slice of HanziRecord and groups them by their pinyin_without_tone field.
 /// Returns a vector of tuples containing the pinyin and a vector of characters.
 /// The results are sorted by frequency (descending) and then by pinyin (ascending).
-/// 
+///
 /// # Arguments
-/// 
+///
 /// * `records` - A slice of HanziRecord to group
 /// * `use_traditional` - Whether to use traditional characters instead of simplified
-/// 
+///
 /// # Returns
-/// 
+///
 /// A vector of tuples where each tuple contains:
 /// - The pinyin without tone as a String
 /// - A vector of character strings corresponding to that pinyin
-/// 
+///
 /// # Sorting Order
-/// 
+///
 /// Results are sorted by:
 /// 1. Number of characters (descending) - most common pinyin first
 /// 2. Pinyin alphabetically (ascending) - consistent ordering for same frequency
-/// 
+///
 /// # Examples
-/// 
+///
 /// ```rust
 /// # use study_rust_kanji::{HanziRecord, HanziOnset, HanziRime, group_by_pinyin};
 /// # let records = vec![]; // Placeholder for actual records
@@ -441,35 +441,35 @@ pub fn group_by_pinyin(
 }
 
 /// Formats pinyin grouping data for display with optional line folding
-/// 
+///
 /// Takes grouped pinyin data and formats it for display, with optional line folding
 /// for long character lists. Each line shows the pinyin, character count, and characters.
-/// 
+///
 /// # Arguments
-/// 
+///
 /// * `grouped_data` - A slice of tuples containing pinyin and character vectors
 /// * `fold_size` - Optional width for line folding. If provided, long character lists
 ///   will be folded to this width with continuation lines
-/// 
+///
 /// # Returns
-/// 
+///
 /// A vector of formatted strings ready for display
-/// 
+///
 /// # Output Format
-/// 
+///
 /// Without folding:
 /// ```text
 /// pinyin  :  42 characters_here
 /// ```
-/// 
+///
 /// With folding (fold_size = 10):
 /// ```text
 /// pinyin  :  42 first_10_ch
 ///               next_chars
 /// ```
-/// 
+///
 /// # Formatting Details
-/// 
+///
 /// - Pinyin is left-aligned in an 8-character field
 /// - Character count is right-aligned in a 3-character field
 /// - Continuation lines are indented with 14 spaces to align with characters
@@ -527,31 +527,31 @@ pub fn format_pinyin_output(
 }
 
 /// Groups Hanzi records by tone for a specific pinyin
-/// 
+///
 /// Filters records by the target pinyin and groups them by tone.
 /// Returns None if no matching records are found.
-/// 
+///
 /// # Arguments
-/// 
+///
 /// * `records` - A slice of HanziRecord to search through
 /// * `target_pinyin` - The pinyin (without tone) to filter by
 /// * `use_traditional` - Whether to use traditional characters instead of simplified
-/// 
+///
 /// # Returns
-/// 
+///
 /// An optional vector of tuples where each tuple contains:
 /// - The tone number (u32): 1-4 for standard tones, 5 for neutral tone
 /// - The pinyin with tone marks as a String
 /// - A vector of character strings for that tone
-/// 
+///
 /// Returns `None` if no characters match the target pinyin.
-/// 
+///
 /// # Tone Sorting
-/// 
+///
 /// Results are sorted by tone number (1, 2, 3, 4, 5) in ascending order.
-/// 
+///
 /// # Examples
-/// 
+///
 /// ```rust
 /// # use study_rust_kanji::{HanziRecord, HanziOnset, HanziRime, group_by_tone};
 /// # let records = vec![]; // Placeholder for actual records
@@ -605,30 +605,30 @@ pub fn group_by_tone(
 }
 
 /// Formats tone grouping data for display
-/// 
+///
 /// Takes grouped tone data and formats it for display. Each line shows the pinyin
 /// with tone marks followed by the corresponding characters for that tone.
-/// 
+///
 /// # Arguments
-/// 
+///
 /// * `tone_groups` - A slice of tuples containing tone data where each tuple has:
 ///   - Tone number (u32): 1-4 for standard tones, 5 for neutral tone
 ///   - Pinyin with tone marks (String): e.g., "jī", "jí", "jǐ", "jì"
 ///   - Character vector (`Vec<String>`): characters with that pinyin and tone
-/// 
+///
 /// # Returns
-/// 
+///
 /// A vector of formatted strings ready for display, one per tone group
-/// 
+///
 /// # Output Format
-/// 
+///
 /// Each line follows the pattern:
 /// ```text
 /// pinyin_with_tone: characters
 /// ```
-/// 
+///
 /// # Examples
-/// 
+///
 /// ```rust
 /// # use study_rust_kanji::format_tone_output;
 /// let tone_data = vec![
@@ -638,9 +638,9 @@ pub fn group_by_tone(
 /// let output = format_tone_output(&tone_data);
 /// // Result: ["mā: 妈", "mǎ: 马码"]
 /// ```
-/// 
+///
 /// # Usage with group_by_tone
-/// 
+///
 /// This function is typically used in conjunction with [`group_by_tone`]:
 /// ```rust,no_run
 /// # use study_rust_kanji::{group_by_tone, format_tone_output};
@@ -661,7 +661,6 @@ pub fn format_tone_output(tone_groups: &[(u32, String, Vec<String>)]) -> Vec<Str
         })
         .collect()
 }
-
 
 #[cfg(test)]
 mod tests {
@@ -1160,5 +1159,4 @@ mod tests {
             "Search with 'ü' should find characters"
         );
     }
-
 }
