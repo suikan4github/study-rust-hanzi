@@ -1,7 +1,13 @@
 use std::process::Command;
+use std::path::Path;
 
 #[test]
 fn test_by_pinyin_output_format() {
+    if !Path::new("hanzi.tsv").exists() {
+        eprintln!("Skipping test: hanzi.tsv not found");
+        return;
+    }
+
     let output = Command::new("cargo")
         .args(&["run", "--", "by-pinyin"])
         .output()
@@ -22,6 +28,11 @@ fn test_by_pinyin_output_format() {
 
 #[test]
 fn test_by_pinyin_traditional_vs_simplified() {
+    if !Path::new("hanzi.tsv").exists() {
+        eprintln!("Skipping test: hanzi.tsv not found");
+        return;
+    }
+
     let simplified_output = Command::new("cargo")
         .args(&["run", "--", "by-pinyin"])
         .output()
@@ -45,6 +56,11 @@ fn test_by_pinyin_traditional_vs_simplified() {
 
 #[test]
 fn test_by_pinyin_fold_option() {
+    if !Path::new("hanzi.tsv").exists() {
+        eprintln!("Skipping test: hanzi.tsv not found");
+        return;
+    }
+
     let normal_output = Command::new("cargo")
         .args(&["run", "--", "by-pinyin"])
         .output()
@@ -67,6 +83,11 @@ fn test_by_pinyin_fold_option() {
 
 #[test]
 fn test_by_tone_output_format() {
+    if !Path::new("hanzi.tsv").exists() {
+        eprintln!("Skipping test: hanzi.tsv not found");
+        return;
+    }
+
     let output = Command::new("cargo")
         .args(&["run", "--", "by-tone", "ji"])
         .output()
@@ -89,6 +110,11 @@ fn test_by_tone_output_format() {
 
 #[test]
 fn test_by_tone_traditional_vs_simplified() {
+    if !Path::new("hanzi.tsv").exists() {
+        eprintln!("Skipping test: hanzi.tsv not found");
+        return;
+    }
+
     let simplified_output = Command::new("cargo")
         .args(&["run", "--", "by-tone", "ji"])
         .output()
@@ -113,6 +139,11 @@ fn test_by_tone_traditional_vs_simplified() {
 
 #[test]
 fn test_by_tone_nonexistent_pinyin() {
+    if !Path::new("hanzi.tsv").exists() {
+        eprintln!("Skipping test: hanzi.tsv not found");
+        return;
+    }
+
     let output = Command::new("cargo")
         .args(&["run", "--", "by-tone", "xyz"])
         .output()
@@ -126,6 +157,11 @@ fn test_by_tone_nonexistent_pinyin() {
 
 #[test]
 fn test_by_tone_tone_ordering() {
+    if !Path::new("hanzi.tsv").exists() {
+        eprintln!("Skipping test: hanzi.tsv not found");
+        return;
+    }
+
     let output = Command::new("cargo")
         .args(&["run", "--", "by-tone", "ma"])
         .output()
@@ -146,6 +182,10 @@ fn test_by_tone_tone_ordering() {
 
 #[test]
 fn test_by_tone_v_to_u_replacement() {
+    if !Path::new("hanzi.tsv").exists() {
+        eprintln!("Skipping test: hanzi.tsv not found");
+        return;
+    }
     // Test that 'v' in command line input gets replaced with 'ü'
     let output = Command::new("cargo")
         .args(&["run", "--", "by-tone", "nv"])

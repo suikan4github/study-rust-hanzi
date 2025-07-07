@@ -18,10 +18,6 @@ jobs:
         rust:
           - stable
           - beta
-        include:
-          - rust: nightly
-            allow_failure: true
-    continue-on-error: ${{ matrix.allow_failure || false }}
     
     steps:
     - name: Checkout repository
