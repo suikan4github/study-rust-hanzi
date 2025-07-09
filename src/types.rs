@@ -356,6 +356,7 @@ impl FromStr for HanziRime {
 /// * `tone` - Tone number (1-4 for tones, 5 for neutral tone)
 /// * `onset` - Initial consonant sound classification
 /// * `rime` - Vowel and final consonant sound classification
+#[derive(Debug, Clone)]
 pub struct HanziRecord {
     pub frequency: u32,
     pub simplified: String,

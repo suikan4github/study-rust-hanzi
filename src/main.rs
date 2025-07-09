@@ -8,6 +8,7 @@
 //!
 //! - **by-pinyin**: Groups characters by their pinyin pronunciation (without tone marks)
 //! - **by-tone**: Filters characters by specific pinyin and displays them grouped by tone
+//! - **by-onset**: Groups characters by onset (initial consonant) sounds and shows counts
 //! - **generate-completion**: Creates shell completion scripts for better CLI experience
 //!
 //! ## Examples
@@ -28,6 +29,9 @@
 //! # Show traditional characters for pinyin "nv" (converted to "nü")
 //! study-rust-hanzi by-tone nv --traditional
 //!
+//! # Show character counts grouped by onset sounds
+//! study-rust-hanzi by-onset
+//!
 //! # Generate bash completion script
 //! study-rust-hanzi generate-completion bash > completion.bash
 //! ```
@@ -42,7 +46,8 @@ use clap::{CommandFactory, Parser, Subcommand};
 use clap_complete::{generate, Generator, Shell};
 use std::io::{self, Write};
 use study_rust_hanzi::{
-    format_pinyin_output, format_tone_output, group_by_pinyin, group_by_tone, read_hanzi_file,
+    format_onset_output, format_pinyin_output, format_tone_output, group_by_onset, group_by_pinyin,
+    group_by_tone, read_hanzi_file,
 };
 
 /// Hanzi learning program
@@ -60,9 +65,10 @@ struct Args {
 
 /// Available commands for the Hanzi learning program
 ///
-/// This enum defines the three main operations supported by the application:
+/// This enum defines the main operations supported by the application:
 /// - Listing characters grouped by pinyin pronunciation
 /// - Showing characters filtered by specific pinyin and grouped by tone
+/// - Analyzing characters grouped by onset (initial consonant) sounds
 /// - Generating shell completion scripts for better CLI experience
 #[derive(Subcommand)]
 enum Commands {
@@ -79,6 +85,12 @@ enum Commands {
     ByTone {
         /// The pinyin (without tone marks) to search for. Use 'v' for 'ü' (e.g., 'nv' for 'nü')
         pinyin: String,
+        /// Use traditional characters instead of simplified
+        #[arg(short = 'r', long)]
+        traditional: bool,
+    },
+    /// Show character counts grouped by onset (initial consonant) sounds
+    ByOnset {
         /// Use traditional characters instead of simplified
         #[arg(short = 'r', long)]
         traditional: bool,
@@ -196,14 +208,55 @@ fn print_completions<G: Generator>(gen: G, cmd: &mut clap::Command) {
     generate(gen, cmd, cmd.get_name().to_string(), &mut io::stdout());
 }
 
+/// Processes the by-onset command to display characters grouped by onset type
+///
+/// This function reads the hanzi data file, applies onset analysis to classify characters
+/// by their initial consonant sounds, counts characters for each onset type, and displays
+/// the results sorted by frequency in descending order.
+///
+/// # Arguments
+///
+/// * `_use_traditional` - Whether to display traditional characters instead of simplified
+///   (Note: This parameter is included for consistency with other functions, but onset
+///   analysis is based on pinyin pronunciation and doesn't affect the onset classification itself)
+///
+/// # Behavior
+///
+/// - Reads hanzi data from "hanzi.tsv" file
+/// - Applies onset analysis using `group_by_onset()`
+/// - Counts the number of characters for each onset type
+/// - Displays results sorted by frequency (most common onsets first)
+/// - Shows onset name and character count for each onset type
+/// - Exits with error code 1 if the data file cannot be read
+fn process_by_onset(_use_traditional: bool) {
+    match read_hanzi_file("hanzi.tsv") {
+        Ok(records) => match group_by_onset(&records) {
+            Some(onset_counts) => {
+                let output_lines = format_onset_output(&onset_counts);
+                for line in output_lines {
+                    println!("{line}");
+                }
+            }
+            None => {
+                println!("No characters found in the data file.");
+            }
+        },
+        Err(e) => {
+            eprintln!("Error reading hanzi.tsv: {e}");
+            std::process::exit(1);
+        }
+    }
+}
+
 /// Main entry point for the Hanzi learning program
 ///
 /// This function parses command-line arguments and dispatches to the appropriate
-/// handler function based on the selected subcommand. It supports three main operations:
+/// handler function based on the selected subcommand. It supports four main operations:
 ///
 /// 1. **by-pinyin**: Groups and displays characters by pinyin pronunciation
 /// 2. **by-tone**: Filters characters by specific pinyin and groups by tone
-/// 3. **generate-completion**: Creates shell completion scripts
+/// 3. **by-onset**: Groups and counts characters by onset (initial consonant) sounds
+/// 4. **generate-completion**: Creates shell completion scripts
 ///
 /// The function uses the clap crate for argument parsing and provides comprehensive
 /// help messages and validation for all commands and options.
@@ -219,6 +272,9 @@ fn main() {
             traditional,
         } => {
             process_by_tone(&pinyin, traditional);
+        }
+        Commands::ByOnset { traditional } => {
+            process_by_onset(traditional);
         }
         Commands::GenerateCompletion { shell } => {
             let mut cmd = Args::command();

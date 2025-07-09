@@ -86,8 +86,8 @@ jobs:
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: study-rust-kanji-${{ matrix.target }}
-        path: target/${{ matrix.target }}/release/study-rust-kanji${{ matrix.suffix }}
+        name: study-rust-hanzi-${{ matrix.target }}
+        path: target/${{ matrix.target }}/release/study-rust-hanzi${{ matrix.suffix }}
 
   security:
     name: Security Audit

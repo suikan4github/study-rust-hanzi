@@ -4,7 +4,8 @@
 //! based on pinyin pronunciation and tones. It handles the organization and display
 //! of character collections for analysis purposes.
 
-use crate::types::HanziRecord;
+use crate::analysis::set_hanzi_onsets;
+use crate::types::{HanziOnset, HanziRecord};
 use std::collections::HashMap;
 
 /// Groups Hanzi records by pinyin without tone marks
@@ -292,6 +293,120 @@ pub fn format_tone_output(tone_groups: &[(u32, String, Vec<String>)]) -> Vec<Str
         .collect()
 }
 
+/// Groups Hanzi records by onset and returns count for each onset type
+///
+/// This function first applies onset analysis to the given records using
+/// `analysis::set_hanzi_onsets()`, then counts the number of HanziRecord elements
+/// for each HanziOnset type. Returns a vector of tuples containing onset and count,
+/// sorted by count in descending order.
+///
+/// # Arguments
+///
+/// * `records` - A slice of HanziRecord to analyze and group
+///
+/// # Returns
+///
+/// An optional vector of tuples where each tuple contains:
+/// - The HanziOnset type
+/// - The count of records with that onset (u32)
+///
+/// Returns `None` if the input records slice is empty.
+/// The vector is sorted by count in descending order (most frequent onsets first).
+///
+/// # Examples
+///
+/// ```rust
+/// # use study_rust_hanzi::{HanziRecord, HanziOnset, HanziRime, group_by_onset};
+/// # let records = vec![]; // Placeholder for actual records
+/// if let Some(onset_counts) = group_by_onset(&records) {
+///     // onset_counts: [(HanziOnset::N, 1500), (HanziOnset::L, 1200), ...]
+///     for (onset, count) in onset_counts {
+///         println!("{:?}: {}", onset, count);
+///     }
+/// }
+/// ```
+pub fn group_by_onset(records: &[HanziRecord]) -> Option<Vec<(HanziOnset, u32)>> {
+    if records.is_empty() {
+        return None;
+    }
+
+    // Create a mutable copy of records to apply onset analysis
+    let mut records_copy: Vec<HanziRecord> = records.to_vec();
+
+    // Apply onset analysis
+    set_hanzi_onsets(&mut records_copy);
+
+    // Count records by onset type
+    let mut onset_counts: HashMap<HanziOnset, u32> = HashMap::new();
+    for record in &records_copy {
+        *onset_counts.entry(record.onset.clone()).or_insert(0) += 1;
+    }
+
+    // Convert to vector and sort by count in descending order
+    let mut result: Vec<(HanziOnset, u32)> = onset_counts.into_iter().collect();
+    result.sort_by(|a, b| b.1.cmp(&a.1)); // Sort by count descending
+
+    Some(result)
+}
+
+/// Formats onset grouping data for display
+///
+/// Takes grouped onset data and formats it for display. Each line shows the onset
+/// type followed by the count of characters with that onset.
+///
+/// # Arguments
+///
+/// * `onset_counts` - A slice of tuples containing onset data where each tuple has:
+///   - HanziOnset: The onset type (e.g., HanziOnset::J, HanziOnset::M)
+///   - u32: The count of records with that onset
+///
+/// # Returns
+///
+/// A vector of formatted strings ready for display, one per onset group
+///
+/// # Output Format
+///
+/// Each line follows the pattern:
+/// ```text
+/// onset_name: count
+/// ```
+///
+/// # Examples
+///
+/// ```rust
+/// # use study_rust_hanzi::{HanziOnset, format_onset_output};
+/// let onset_data = vec![
+///     (HanziOnset::J, 150),
+///     (HanziOnset::M, 120),
+///     (HanziOnset::None, 80),
+/// ];
+/// let output = format_onset_output(&onset_data);
+/// // Result: ["j: 150", "m: 120", "none: 80"]
+/// ```
+///
+/// # Usage with group_by_onset
+///
+/// This function is typically used in conjunction with [`group_by_onset`]:
+/// ```rust,no_run
+/// # use study_rust_hanzi::{group_by_onset, format_onset_output};
+/// # let records = vec![]; // Placeholder
+/// if let Some(onset_counts) = group_by_onset(&records) {
+///     let formatted = format_onset_output(&onset_counts);
+///     for line in formatted {
+///         println!("{}", line);
+///     }
+/// }
+/// ```
+pub fn format_onset_output(onset_counts: &[(HanziOnset, u32)]) -> Vec<String> {
+    onset_counts
+        .iter()
+        .map(|(onset, count)| {
+            let onset_name = onset.as_str();
+            format!("{}: {}", onset_name, count)
+        })
+        .collect()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -430,7 +545,7 @@ mod tests {
         // ji has 2 characters (tone 1: 机, tone 4: 计)
         assert_eq!(tone_groups.len(), 2);
 
-        // Should be sorted by tone order
+        // Should be sorted in tone order
         assert_eq!(tone_groups[0].0, 1); // tone 1
         assert_eq!(tone_groups[0].2, vec!["机"]); // 机
 
@@ -521,5 +636,96 @@ mod tests {
         assert_eq!(tone_groups.len(), 2);
         assert_eq!(tone_groups[0].0, 3); // tone 3 comes first
         assert_eq!(tone_groups[1].0, 5); // tone 5 comes after
+    }
+
+    #[test]
+    fn test_group_by_onset() {
+        let records = create_test_records();
+        let result = group_by_onset(&records);
+
+        assert!(result.is_some());
+        let onset_counts = result.unwrap();
+
+        // Should have onset counts for the test data
+        assert!(!onset_counts.is_empty());
+
+        // Verify that counts are sorted in descending order
+        for i in 1..onset_counts.len() {
+            assert!(
+                onset_counts[i - 1].1 >= onset_counts[i].1,
+                "Onset counts should be sorted in descending order"
+            );
+        }
+
+        // Check that we have the expected onsets from our test data
+        let onset_map: std::collections::HashMap<HanziOnset, u32> =
+            onset_counts.iter().cloned().collect();
+
+        // From create_test_records: ji (2 records) and ma (1 record)
+        // After onset analysis: J onset should have 2, M onset should have 1
+        assert!(onset_map.contains_key(&HanziOnset::J));
+        assert!(onset_map.contains_key(&HanziOnset::M));
+    }
+
+    #[test]
+    fn test_group_by_onset_empty() {
+        let empty_records: Vec<HanziRecord> = vec![];
+        let result = group_by_onset(&empty_records);
+
+        assert!(result.is_none());
+    }
+
+    #[test]
+    fn test_format_onset_output() {
+        let test_data = vec![
+            (HanziOnset::J, 150),
+            (HanziOnset::M, 120),
+            (HanziOnset::Zh, 90),
+            (HanziOnset::None, 80),
+        ];
+
+        let output = format_onset_output(&test_data);
+
+        assert_eq!(output.len(), 4);
+        assert_eq!(output[0], "j: 150");
+        assert_eq!(output[1], "m: 120");
+        assert_eq!(output[2], "zh: 90");
+        assert_eq!(output[3], "none: 80");
+    }
+
+    #[test]
+    fn test_format_onset_output_empty() {
+        let test_data = vec![];
+        let output = format_onset_output(&test_data);
+
+        assert!(output.is_empty());
+    }
+
+    #[test]
+    fn test_format_onset_output_with_group_by_onset() {
+        let records = create_test_records();
+
+        if let Some(onset_counts) = group_by_onset(&records) {
+            let formatted = format_onset_output(&onset_counts);
+
+            // Should have formatted output for each onset
+            assert!(!formatted.is_empty());
+
+            // Each line should contain a colon separator
+            for line in &formatted {
+                assert!(line.contains(":"), "Each line should contain ':'");
+                let parts: Vec<&str> = line.split(':').collect();
+                assert_eq!(parts.len(), 2, "Each line should have exactly one ':'");
+
+                // The second part should be a number
+                let count_str = parts[1].trim();
+                assert!(
+                    count_str.parse::<u32>().is_ok(),
+                    "Count should be a valid number"
+                );
+            }
+        } else {
+            panic!("group_by_onset should return Some for non-empty records");
+        }
     }
 }

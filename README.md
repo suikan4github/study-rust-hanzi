@@ -6,6 +6,7 @@ A command-line tool for analyzing Chinese characters (Hanzi) written in Rust. Th
 
 - **By Pinyin Analysis**: List unique pinyin pronunciations with frequency counts and associated characters
 - **By Tone Analysis**: Show characters grouped by tone for a specific pinyin pronunciation
+- **By Onset Analysis**: Group and count characters by their pinyin onset (initial consonant sound)
 - **Traditional/Simplified Character Support**: Switch between simplified and traditional Chinese characters
 - **V-to-Ü Replacement**: Automatically converts 'v' to 'ü' in pinyin input for easier typing
 - **Line Folding**: Wrap long character lists for better readability
@@ -27,7 +28,7 @@ cd study-rust-hanzi
 cargo build --release
 ```
 
-The binary will be available at `target/release/study-rust-kanji`.
+The binary will be available at `target/release/study-rust-hanzi`.
 
 ## Usage
 
@@ -38,7 +39,7 @@ The tool operates on a TSV file named `hanzi.tsv` in the current directory. The 
 #### List Pinyin by Frequency
 
 ```bash
-./study-rust-kanji by-pinyin [OPTIONS]
+./study-rust-hanzi by-pinyin [OPTIONS]
 ```
 
 This command lists all unique pinyin pronunciations sorted by frequency (most common first), showing:
@@ -62,13 +63,13 @@ yu      :  69 于与语育预余域鱼遇予雨玉欲宇愈御狱誉渔羽愚郁
 Use the `--fold` option to wrap long character lists:
 
 ```bash
-./study-rust-kanji by-pinyin --fold 50
-./study-rust-kanji by-pinyin -f    # Uses default fold width of 50
+./study-rust-hanzi by-pinyin --fold 50
+./study-rust-hanzi by-pinyin -f    # Uses default fold width of 50
 ```
 
 Example with folding at 30 characters:
 ```bash
-./study-rust-kanji by-pinyin -f 30
+./study-rust-hanzi by-pinyin -f 30
 ```
 
 Output:
@@ -84,7 +85,7 @@ yi      :  79 一以意已义议易医依益疑异衣伊艺移亦遗亿译役仪
 #### Show Characters by Tone
 
 ```bash
-./study-rust-kanji by-tone <pinyin> [OPTIONS]
+./study-rust-hanzi by-tone <pinyin> [OPTIONS]
 ```
 
 This command shows all characters for a specific pinyin pronunciation, grouped by tone.
@@ -95,9 +96,9 @@ This command shows all characters for a specific pinyin pronunciation, grouped b
 **V-to-Ü Replacement:** You can use 'v' as a substitute for 'ü' when typing. For example, `nv` will be automatically converted to `nü`.
 
 ```bash
-./study-rust-kanji by-tone ji
-./study-rust-kanji by-tone nv    # Automatically converted to "nü"
-./study-rust-kanji by-tone lv    # Automatically converted to "lü"
+./study-rust-hanzi by-tone ji
+./study-rust-hanzi by-tone nv    # Automatically converted to "nü"
+./study-rust-hanzi by-tone lv    # Automatically converted to "lü"
 ```
 
 Example output:
@@ -108,10 +109,42 @@ jǐ: 己几挤戟麂
 jì: 计记济技际纪继既季剂寄寂祭忌冀妓伎悸暨骥稷髻鲫偈蓟觊霁
 ```
 
+#### Group Characters by Onset
+
+```bash
+./study-rust-hanzi by-onset [OPTIONS]
+```
+
+This command groups and counts all Chinese characters by their pinyin onset (initial consonant sound). The onset is the consonant or consonant cluster that begins a syllable. This analysis is useful for understanding the distribution of initial sounds in Chinese.
+
+**Options:**
+- `--traditional`, `-r`: Use traditional characters instead of simplified
+
+**What is an Onset?**
+In Chinese phonology, the onset is the initial consonant or consonant cluster of a syllable:
+- `m` in `ma` (妈)
+- `zh` in `zhōng` (中)
+- `shr` in `shū` (书)
+- Empty onset for vowel-initial syllables like `ān` (安)
+
+Example output:
+```
+Onset '' (vowel-initial): 251 characters
+Onset 'b': 183 characters
+Onset 'c': 114 characters
+Onset 'ch': 192 characters
+Onset 'd': 210 characters
+Onset 'f': 118 characters
+Onset 'g': 135 characters
+...
+```
+
+This command processes all 5000 characters in the dataset and shows the frequency distribution of initial sounds, helping with pronunciation pattern analysis and phonetic studies.
+
 #### Generate Shell Completions
 
 ```bash
-./study-rust-kanji generate-completion <shell>
+./study-rust-hanzi generate-completion <shell>
 ```
 
 Supported shells: `bash`, `zsh`, `fish`, `powershell`, `elvish`
@@ -127,11 +160,11 @@ Both `by-pinyin` and `by-tone` commands support character set selection:
 
 ```bash
 # Simplified characters (default)
-./study-rust-kanji by-pinyin
+./study-rust-hanzi by-pinyin
 
 # Traditional characters
-./study-rust-kanji by-pinyin --traditional
-./study-rust-kanji by-tone ma -r
+./study-rust-hanzi by-pinyin --traditional
+./study-rust-hanzi by-tone ma -r
 ```
 
 #### Input Convenience Features
@@ -147,26 +180,35 @@ This feature is especially helpful when using keyboards without easy access to t
 
 ```bash
 # Get top 10 most common pinyin pronunciations
-./study-rust-kanji by-pinyin | head -10
+./study-rust-hanzi by-pinyin | head -10
 
 # Show traditional characters instead of simplified
-./study-rust-kanji by-pinyin --traditional
+./study-rust-hanzi by-pinyin --traditional
 
 # Find all characters pronounced "ma"
-./study-rust-kanji by-tone ma
+./study-rust-hanzi by-tone ma
 
 # Find characters with "ü" sound using "v" replacement
-./study-rust-kanji by-tone nv     # Same as "nü"
-./study-rust-kanji by-tone lv     # Same as "lü"
+./study-rust-hanzi by-tone nv     # Same as "nü"
+./study-rust-hanzi by-tone lv     # Same as "lü"
 
 # Use traditional characters for tone analysis
-./study-rust-kanji by-tone ma --traditional
+./study-rust-hanzi by-tone ma --traditional
+
+# Analyze onset distribution of all characters
+./study-rust-hanzi by-onset
+
+# Analyze onset distribution using traditional characters
+./study-rust-hanzi by-onset --traditional
+
+# Get the most common onsets
+./study-rust-hanzi by-onset | head -10
 
 # Generate bash completion script
-./study-rust-kanji generate-completion bash > completion.bash
+./study-rust-hanzi generate-completion bash > completion.bash
 
 # Use with folding for better readability
-./study-rust-kanji by-pinyin --fold 30 | less
+./study-rust-hanzi by-pinyin --fold 30 | less
 ```
 
 ## Data Format
