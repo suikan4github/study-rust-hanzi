@@ -98,7 +98,7 @@ fn test_by_tone_output_format() {
     }
 
     let output = Command::new("cargo")
-        .args(["run", "--", "by-tone", "ji"])
+        .args(["run", "--", "by-pinyin", "ji"])
         .output()
         .expect("Failed to execute command");
 
@@ -133,12 +133,12 @@ fn test_by_tone_traditional_vs_simplified() {
     }
 
     let simplified_output = Command::new("cargo")
-        .args(["run", "--", "by-tone", "ji"])
+        .args(["run", "--", "by-pinyin", "ji"])
         .output()
         .expect("Failed to execute command");
 
     let traditional_output = Command::new("cargo")
-        .args(["run", "--", "by-tone", "ji", "--traditional"])
+        .args(["run", "--", "by-pinyin", "ji", "--traditional"])
         .output()
         .expect("Failed to execute command");
 
@@ -164,7 +164,7 @@ fn test_by_tone_nonexistent_pinyin() {
     }
 
     let output = Command::new("cargo")
-        .args(["run", "--", "by-tone", "xyz"])
+        .args(["run", "--", "by-pinyin", "xyz"])
         .output()
         .expect("Failed to execute command");
 
@@ -182,7 +182,7 @@ fn test_by_tone_tone_ordering() {
     }
 
     let output = Command::new("cargo")
-        .args(["run", "--", "by-tone", "ma"])
+        .args(["run", "--", "by-pinyin", "ma"])
         .output()
         .expect("Failed to execute command");
 
@@ -207,7 +207,7 @@ fn test_by_tone_v_to_u_replacement() {
     }
     // Test that 'v' in command line input gets replaced with 'ü'
     let output = Command::new("cargo")
-        .args(["run", "--", "by-tone", "nv"])
+        .args(["run", "--", "by-pinyin", "nv"])
         .output()
         .expect("Failed to execute command");
 

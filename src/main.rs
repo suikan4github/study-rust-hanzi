@@ -90,14 +90,9 @@ enum Commands {
         /// Use traditional characters instead of simplified
         #[arg(short, long)]
         traditional: bool,
-    },
-    /// Show characters by tone for specified pinyin
-    ByTone {
         /// The pinyin (without tone marks) to search for. Use 'v' for 'ü' (e.g., 'nv' for 'nü')
-        pinyin: String,
-        /// Use traditional characters instead of simplified
-        #[arg(short, long)]
-        traditional: bool,
+        /// Optional pinyin to filter results ( e.g. "ma" to show only characters with that pinyin)
+        pinyin: Option<String>,
     },
     /// Show character counts grouped by onset (initial consonant) sounds
     ByOnset {
@@ -312,14 +307,21 @@ fn main() {
     let args = Args::parse();
 
     match args.command {
-        Commands::ByPinyin { fold, traditional } => {
-            process_by_pinyin(fold, traditional);
-        }
-        Commands::ByTone {
-            pinyin,
+        Commands::ByPinyin {
+            fold,
             traditional,
+            pinyin,
         } => {
-            process_by_tone(&pinyin, traditional);
+            match pinyin {
+                Some(p) => {
+                    // If pinyin is provided, process it with the specified fold and traditional options
+                    process_by_tone(&p, traditional);
+                }
+                None => {
+                    // If no pinyin is provided, just process by pinyin without filtering
+                    process_by_pinyin(fold, traditional);
+                }
+            }
         }
         Commands::ByOnset {
             onset,

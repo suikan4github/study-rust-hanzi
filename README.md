@@ -39,7 +39,7 @@ The tool operates on a TSV file named `hanzi.tsv` in the current directory. The 
 #### List Pinyin by Frequency
 
 ```bash
-./study-rust-hanzi by-pinyin [OPTIONS]
+./study-rust-hanzi by-pinyin <pinyin> [OPTIONS]
 ```
 
 This command lists all unique pinyin pronunciations sorted by frequency (most common first), showing:
@@ -50,6 +50,7 @@ This command lists all unique pinyin pronunciations sorted by frequency (most co
 **Options:**
 - `--traditional`, `-t`: Use traditional characters instead of simplified
 - `--fold [WIDTH]`, `-f [WIDTH]`: Fold long lines (default width: 50)
+- `<pinyin>`: Optional specific pinyin to filter results (e.g., `ji`, `yi`, `yu`)
 
 Example output:
 ```
@@ -82,13 +83,10 @@ yi      :  79 一以意已义议易医依益疑异衣伊艺移亦遗亿译役仪
               熠弋诒弈翊呓噫蜴壹薏迤刈咿铱旖羿苡缢翳
 ```
 
-#### Show Characters by Tone
+#### Show specific pinyin by Tone
 
-```bash
-./study-rust-hanzi by-tone <pinyin> [OPTIONS]
-```
+With the `<pinin>` argument, you can filter results to show characters for a specific pinyin pronunciation, grouped by tone.
 
-This command shows all characters for a specific pinyin pronunciation, grouped by tone.
 
 **Options:**
 - `--traditional`, `-t`: Use traditional characters instead of simplified
@@ -96,9 +94,9 @@ This command shows all characters for a specific pinyin pronunciation, grouped b
 **V-to-Ü Replacement:** You can use 'v' as a substitute for 'ü' when typing. For example, `nv` will be automatically converted to `nü`.
 
 ```bash
-./study-rust-hanzi by-tone ji
-./study-rust-hanzi by-tone nv    # Automatically converted to "nü"
-./study-rust-hanzi by-tone lv    # Automatically converted to "lü"
+./study-rust-hanzi by-pinyin ji
+./study-rust-hanzi by-pinyin nv    # Automatically converted to "nü"
+./study-rust-hanzi by-pinyin lv    # Automatically converted to "lü"
 ```
 
 Example output:
@@ -153,7 +151,7 @@ See [COMPLETION.md](COMPLETION.md) for detailed installation instructions.
 
 #### Character Set Options
 
-Both `by-pinyin` and `by-tone` commands support character set selection:
+The `by-pinyin` commands support character set selection:
 
 - **Default**: Shows simplified Chinese characters
 - **Traditional**: Use `--traditional` or `-t` flag to show traditional Chinese characters
@@ -164,12 +162,12 @@ Both `by-pinyin` and `by-tone` commands support character set selection:
 
 # Traditional characters
 ./study-rust-hanzi by-pinyin --traditional
-./study-rust-hanzi by-tone ma -t
+./study-rust-hanzi by-pinyin ma -t
 ```
 
 #### Input Convenience Features
 
-**V-to-Ü Replacement**: When using the `by-tone` command, you can type 'v' instead of 'ü' for easier keyboard input. The tool automatically converts:
+**V-to-Ü Replacement**: When using the `by-pinyin` command winth `<pinyin>` option, you can type 'v' instead of 'ü' for easier keyboard input. The tool automatically converts:
 - `nv` → `nü` (女)
 - `lv` → `lü` (律, 旅, etc.)
 - `xv` → `xü` (虚, etc.)
@@ -186,14 +184,14 @@ This feature is especially helpful when using keyboards without easy access to t
 ./study-rust-hanzi by-pinyin --traditional
 
 # Find all characters pronounced "ma"
-./study-rust-hanzi by-tone ma
+./study-rust-hanzi by-pinyin ma
 
 # Find characters with "ü" sound using "v" replacement
-./study-rust-hanzi by-tone nv     # Same as "nü"
-./study-rust-hanzi by-tone lv     # Same as "lü"
+./study-rust-hanzi by-pinyin nv     # Same as "nü"
+./study-rust-hanzi by-pinyin lv     # Same as "lü"
 
 # Use traditional characters for tone analysis
-./study-rust-hanzi by-tone ma --traditional
+./study-rust-hanzi by-pinyin ma --traditional
 
 # Analyze onset distribution of all characters
 ./study-rust-hanzi by-onset
