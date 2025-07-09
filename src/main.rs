@@ -264,7 +264,7 @@ fn process_by_onset(onset_filter: Option<&str>, fold_size: Option<usize>, use_tr
                         }
                     }
                     Err(e) => {
-                        eprintln!("Invalid onset '{}': {}", onset_str, e);
+                        eprintln!("Invalid onset '{onset_str}': {e}");
                         std::process::exit(1);
                     }
                 }

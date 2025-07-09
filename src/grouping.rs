@@ -402,7 +402,7 @@ pub fn format_onset_output(onset_counts: &[(HanziOnset, u32)]) -> Vec<String> {
         .iter()
         .map(|(onset, count)| {
             let onset_name = onset.as_str();
-            format!("{}: {}", onset_name, count)
+            format!("{onset_name}: {count}")
         })
         .collect()
 }
@@ -510,8 +510,8 @@ pub fn group_by_onset_and_pinyin(
 /// # Arguments
 ///
 /// * `pinyin_groups` - A slice of tuples containing pinyin grouping data where each tuple has:
-///   - String: The pinyin without tone marks (e.g., "ji", "ma")
-///   - Vec<String>: The vector of characters with that pinyin
+///   - `String`: The pinyin without tone marks (e.g., "ji", "ma")
+///   - `Vec<String>`: The vector of characters with that pinyin
 /// * `fold_size` - Optional width for line folding. If provided, long character lists
 ///   will be folded to this width with continuation lines
 ///
