@@ -1,5 +1,5 @@
 [package]
-name = "study-rust-kanji"
+name = "study-rust-hanzi"
 version = "1.0.1"
 edition = "2021"
 description = "Rust program for Hanzi learning and phonetic analysis"

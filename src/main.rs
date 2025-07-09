@@ -6,27 +6,39 @@
 //!
 //! ## Features
 //!
-//! - **by-pinyin**: Groups characters by their pinyin pronunciation (without tone marks)
-//! - **by-tone**: Filters characters by specific pinyin and displays them grouped by tone
+//! - **pinyin**: Groups characters by their pinyin pronunciation (without tone marks)
+//! - **onset**: Groups characters by onset (initial consonant) sounds and shows counts, or filters by specific onset to show pinyin groupings
 //! - **generate-completion**: Creates shell completion scripts for better CLI experience
 //!
 //! ## Examples
 //!
 //! ```bash
 //! # List all characters grouped by pinyin with character count
-//! study-rust-hanzi by-pinyin
+//! study-rust-hanzi pinyin
 //!
 //! # List characters with line folding at 30 characters
-//! study-rust-hanzi by-pinyin --fold 30
+//! study-rust-hanzi pinyin --fold 30
 //!
 //! # Show traditional characters instead of simplified
-//! study-rust-hanzi by-pinyin --traditional
+//! study-rust-hanzi pinyin --traditional
 //!
 //! # Show all characters with pinyin "ma" grouped by tone
-//! study-rust-hanzi by-tone ma
+//! study-rust-hanzi pinyin ma
 //!
 //! # Show traditional characters for pinyin "nv" (converted to "nü")
-//! study-rust-hanzi by-tone nv --traditional
+//! study-rust-hanzi pinyin nv --traditional
+//!
+//! # Show character counts grouped by onset sounds
+//! study-rust-hanzi onset
+//!
+//! # Show characters grouped by pinyin for onset 'j'
+//! study-rust-hanzi onset j
+//!
+//! # Show characters for 'none' onset (vowel-initial syllables)
+//! study-rust-hanzi onset none
+//!
+//! # Show characters for onset 'j' with line folding at 30 characters
+//! study-rust-hanzi onset j --fold 30
 //!
 //! # Generate bash completion script
 //! study-rust-hanzi generate-completion bash > completion.bash
@@ -42,7 +54,9 @@ use clap::{CommandFactory, Parser, Subcommand};
 use clap_complete::{generate, Generator, Shell};
 use std::io::{self, Write};
 use study_rust_hanzi::{
-    format_pinyin_output, format_tone_output, group_by_pinyin, group_by_tone, read_hanzi_file,
+    format_onset_output, format_onset_pinyin_output, format_pinyin_output, format_tone_output,
+    group_by_onset, group_by_onset_and_pinyin, group_by_pinyin, group_by_tone, read_hanzi_file,
+    HanziOnset,
 };
 
 /// Hanzi learning program
@@ -60,27 +74,34 @@ struct Args {
 
 /// Available commands for the Hanzi learning program
 ///
-/// This enum defines the three main operations supported by the application:
+/// This enum defines the main operations supported by the application:
 /// - Listing characters grouped by pinyin pronunciation
 /// - Showing characters filtered by specific pinyin and grouped by tone
+/// - Analyzing characters grouped by onset (initial consonant) sounds
 /// - Generating shell completion scripts for better CLI experience
 #[derive(Subcommand)]
 enum Commands {
     /// List unique pinyin with frequency and characters
-    ByPinyin {
+    Pinyin {
+        /// The pinyin (without tone marks) to search for. Use 'v' for 'ü' (e.g., 'nv' for 'nü')
+        /// Optional pinyin to filter results ( e.g. "ma" to show only characters with that pinyin)
+        pinyin: Option<String>,
         /// Fold long lines when character count exceeds specified value (default: 50)
-        #[arg(short = 'f', long, value_name = "WIDTH", default_missing_value = "50", num_args = 0..=1)]
+        #[arg(short, long, value_name = "WIDTH", default_missing_value = "50", num_args = 0..=1)]
         fold: Option<usize>,
         /// Use traditional characters instead of simplified
-        #[arg(short = 'r', long)]
+        #[arg(short, long)]
         traditional: bool,
     },
-    /// Show characters by tone for specified pinyin
-    ByTone {
-        /// The pinyin (without tone marks) to search for. Use 'v' for 'ü' (e.g., 'nv' for 'nü')
-        pinyin: String,
+    /// Show character counts grouped by onset (initial consonant) sounds
+    Onset {
+        /// Optional onset to filter by (e.g., 'j', 'zh', 'none'). If provided, groups characters by pinyin within that onset
+        onset: Option<String>,
+        /// Fold long lines when character count exceeds specified value (default: 50)
+        #[arg(short, long, value_name = "WIDTH", default_missing_value = "50", num_args = 0..=1)]
+        fold: Option<usize>,
         /// Use traditional characters instead of simplified
-        #[arg(short = 'r', long)]
+        #[arg(short, long)]
         traditional: bool,
     },
     /// Generate shell completion scripts
@@ -196,13 +217,86 @@ fn print_completions<G: Generator>(gen: G, cmd: &mut clap::Command) {
     generate(gen, cmd, cmd.get_name().to_string(), &mut io::stdout());
 }
 
+/// Processes the by-onset command to display characters grouped by onset type
+///
+/// This function reads the hanzi data file and either:
+/// 1. If no onset is specified: applies onset analysis to classify characters by their
+///    initial consonant sounds, counts characters for each onset type, and displays
+///    the results sorted by frequency in descending order.
+/// 2. If an onset is specified: filters characters by that onset and groups them by
+///    pinyin without tone marks, showing character counts and characters for each pinyin.
+///
+/// # Arguments
+///
+/// * `onset_filter` - Optional onset string to filter by (e.g., "j", "zh", "none")
+/// * `fold_size` - Optional width for line folding when onset is specified. If provided,
+///   long character lists will be wrapped to multiple lines for better readability
+/// * `use_traditional` - Whether to display traditional characters instead of simplified
+///
+/// # Behavior
+///
+/// - Reads hanzi data from "hanzi.tsv" file
+/// - If onset_filter is None: uses `group_by_onset()` to count characters by onset type
+/// - If onset_filter is Some: uses `group_by_onset_and_pinyin()` to group by pinyin within onset
+/// - For onset filtering, supports optional line folding similar to by-pinyin command
+/// - Displays results sorted by frequency (most common first)
+/// - Exits with error code 1 if the data file cannot be read or if onset is invalid
+fn process_by_onset(onset_filter: Option<&str>, fold_size: Option<usize>, use_traditional: bool) {
+    match read_hanzi_file("hanzi.tsv") {
+        Ok(records) => {
+            if let Some(onset_str) = onset_filter {
+                // Parse the onset string
+                match onset_str.parse::<HanziOnset>() {
+                    Ok(target_onset) => {
+                        match group_by_onset_and_pinyin(&records, &target_onset, use_traditional) {
+                            Some(pinyin_groups) => {
+                                let output_lines =
+                                    format_onset_pinyin_output(&pinyin_groups, fold_size);
+                                for line in output_lines {
+                                    if writeln!(std::io::stdout(), "{line}").is_err() {
+                                        break; // Broken pipe handling: exit quietly when pipe is closed
+                                    }
+                                }
+                            }
+                            None => {
+                                println!("No characters found for onset: {onset_str}");
+                            }
+                        }
+                    }
+                    Err(e) => {
+                        eprintln!("Invalid onset '{onset_str}': {e}");
+                        std::process::exit(1);
+                    }
+                }
+            } else {
+                // Original behavior: group all characters by onset type
+                match group_by_onset(&records) {
+                    Some(onset_counts) => {
+                        let output_lines = format_onset_output(&onset_counts);
+                        for line in output_lines {
+                            println!("{line}");
+                        }
+                    }
+                    None => {
+                        println!("No characters found in the data file.");
+                    }
+                }
+            }
+        }
+        Err(e) => {
+            eprintln!("Error reading hanzi.tsv: {e}");
+            std::process::exit(1);
+        }
+    }
+}
+
 /// Main entry point for the Hanzi learning program
 ///
 /// This function parses command-line arguments and dispatches to the appropriate
 /// handler function based on the selected subcommand. It supports three main operations:
 ///
-/// 1. **by-pinyin**: Groups and displays characters by pinyin pronunciation
-/// 2. **by-tone**: Filters characters by specific pinyin and groups by tone
+/// 1. **pinyin**: Groups and displays characters by pinyin pronunciation
+/// 2. **onset**: Groups and counts characters by onset (initial consonant) sounds
 /// 3. **generate-completion**: Creates shell completion scripts
 ///
 /// The function uses the clap crate for argument parsing and provides comprehensive
@@ -211,14 +305,28 @@ fn main() {
     let args = Args::parse();
 
     match args.command {
-        Commands::ByPinyin { fold, traditional } => {
-            process_by_pinyin(fold, traditional);
-        }
-        Commands::ByTone {
+        Commands::Pinyin {
+            fold,
+            traditional,
             pinyin,
+        } => {
+            match pinyin {
+                Some(p) => {
+                    // If pinyin is provided, process it with the specified fold and traditional options
+                    process_by_tone(&p, traditional);
+                }
+                None => {
+                    // If no pinyin is provided, just process by pinyin without filtering
+                    process_by_pinyin(fold, traditional);
+                }
+            }
+        }
+        Commands::Onset {
+            onset,
+            fold,
             traditional,
         } => {
-            process_by_tone(&pinyin, traditional);
+            process_by_onset(onset.as_deref(), fold, traditional);
         }
         Commands::GenerateCompletion { shell } => {
             let mut cmd = Args::command();
