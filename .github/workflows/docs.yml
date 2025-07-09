@@ -41,9 +41,9 @@ jobs:
         cargo doc --no-deps --all-features --document-private-items
         echo '<meta http-equiv="refresh" content="0; url=study_rust_hanzi">' > target/doc/index.html
         
-    - name: Generate examples
+    - name: Test documentation examples
       run: |
-        cargo test --doc --no-run
+        cargo test --doc
 
     - name: Upload artifact
       uses: actions/upload-pages-artifact@v3
