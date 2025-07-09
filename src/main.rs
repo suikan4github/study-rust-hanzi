@@ -85,10 +85,10 @@ enum Commands {
     /// List unique pinyin with frequency and characters
     ByPinyin {
         /// Fold long lines when character count exceeds specified value (default: 50)
-        #[arg(short = 'f', long, value_name = "WIDTH", default_missing_value = "50", num_args = 0..=1)]
+        #[arg(short, long, value_name = "WIDTH", default_missing_value = "50", num_args = 0..=1)]
         fold: Option<usize>,
         /// Use traditional characters instead of simplified
-        #[arg(short = 'r', long)]
+        #[arg(short, long)]
         traditional: bool,
     },
     /// Show characters by tone for specified pinyin
@@ -96,7 +96,7 @@ enum Commands {
         /// The pinyin (without tone marks) to search for. Use 'v' for 'ü' (e.g., 'nv' for 'nü')
         pinyin: String,
         /// Use traditional characters instead of simplified
-        #[arg(short = 'r', long)]
+        #[arg(short, long)]
         traditional: bool,
     },
     /// Show character counts grouped by onset (initial consonant) sounds
@@ -104,10 +104,10 @@ enum Commands {
         /// Optional onset to filter by (e.g., 'j', 'zh', 'none'). If provided, groups characters by pinyin within that onset
         onset: Option<String>,
         /// Fold long lines when character count exceeds specified value (default: 50)
-        #[arg(short = 'f', long, value_name = "WIDTH", default_missing_value = "50", num_args = 0..=1)]
+        #[arg(short, long, value_name = "WIDTH", default_missing_value = "50", num_args = 0..=1)]
         fold: Option<usize>,
         /// Use traditional characters instead of simplified
-        #[arg(short = 'r', long)]
+        #[arg(short, long)]
         traditional: bool,
     },
     /// Generate shell completion scripts

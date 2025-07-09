@@ -48,7 +48,7 @@ This command lists all unique pinyin pronunciations sorted by frequency (most co
 - All characters with that pronunciation
 
 **Options:**
-- `--traditional`, `-r`: Use traditional characters instead of simplified
+- `--traditional`, `-t`: Use traditional characters instead of simplified
 - `--fold [WIDTH]`, `-f [WIDTH]`: Fold long lines (default width: 50)
 
 Example output:
@@ -91,7 +91,7 @@ yi      :  79 一以意已义议易医依益疑异衣伊艺移亦遗亿译役仪
 This command shows all characters for a specific pinyin pronunciation, grouped by tone.
 
 **Options:**
-- `--traditional`, `-r`: Use traditional characters instead of simplified
+- `--traditional`, `-t`: Use traditional characters instead of simplified
 
 **V-to-Ü Replacement:** You can use 'v' as a substitute for 'ü' when typing. For example, `nv` will be automatically converted to `nü`.
 
@@ -118,7 +118,7 @@ jì: 计记济技际纪继既季剂寄寂祭忌冀妓伎悸暨骥稷髻鲫偈蓟
 This command groups and counts all Chinese characters by their pinyin onset (initial consonant sound). The onset is the consonant or consonant cluster that begins a syllable. This analysis is useful for understanding the distribution of initial sounds in Chinese.
 
 **Options:**
-- `--traditional`, `-r`: Use traditional characters instead of simplified
+- `--traditional`, `-t`: Use traditional characters instead of simplified
 
 **What is an Onset?**
 In Chinese phonology, the onset is the initial consonant or consonant cluster of a syllable:
@@ -156,7 +156,7 @@ See [COMPLETION.md](COMPLETION.md) for detailed installation instructions.
 Both `by-pinyin` and `by-tone` commands support character set selection:
 
 - **Default**: Shows simplified Chinese characters
-- **Traditional**: Use `--traditional` or `-r` flag to show traditional Chinese characters
+- **Traditional**: Use `--traditional` or `-t` flag to show traditional Chinese characters
 
 ```bash
 # Simplified characters (default)
@@ -164,7 +164,7 @@ Both `by-pinyin` and `by-tone` commands support character set selection:
 
 # Traditional characters
 ./study-rust-hanzi by-pinyin --traditional
-./study-rust-hanzi by-tone ma -r
+./study-rust-hanzi by-tone ma -t
 ```
 
 #### Input Convenience Features
