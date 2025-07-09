@@ -407,6 +407,202 @@ pub fn format_onset_output(onset_counts: &[(HanziOnset, u32)]) -> Vec<String> {
         .collect()
 }
 
+/// Groups Hanzi records by a specific onset and then by pinyin without tone marks
+///
+/// Takes a slice of HanziRecord, filters them by the specified onset, and groups them
+/// by their pinyin_without_tone field. Returns a vector of tuples containing the pinyin
+/// and a vector of characters. The results are sorted by frequency (descending) and then
+/// by pinyin (ascending).
+///
+/// # Arguments
+///
+/// * `records` - A slice of HanziRecord to process
+/// * `target_onset` - The HanziOnset to filter by
+/// * `use_traditional` - Whether to use traditional characters instead of simplified
+///
+/// # Returns
+///
+/// A vector of tuples where each tuple contains:
+/// - The pinyin without tone as a String
+/// - A vector of character strings corresponding to that pinyin for the specified onset
+///
+/// Returns `None` if no records match the specified onset.
+///
+/// # Sorting Order
+///
+/// Results are sorted by:
+/// 1. Number of characters (descending) - most common pinyin first
+/// 2. Pinyin alphabetically (ascending) - consistent ordering for same frequency
+///
+/// # Examples
+///
+/// ```rust
+/// # use study_rust_hanzi::{HanziRecord, HanziOnset, HanziRime, group_by_onset_and_pinyin};
+/// # let records = vec![]; // Placeholder for actual records
+/// if let Some(grouped) = group_by_onset_and_pinyin(&records, &HanziOnset::J, false) {
+///     // grouped: [("ji", vec!["机", "计", "基"]), ("jia", vec!["家", "加"]), ...]
+///     for (pinyin, characters) in grouped {
+///         println!("{}: {}", pinyin, characters.join(""));
+///     }
+/// }
+/// ```
+pub fn group_by_onset_and_pinyin(
+    records: &[HanziRecord],
+    target_onset: &HanziOnset,
+    use_traditional: bool,
+) -> Option<Vec<(String, Vec<String>)>> {
+    // Create a mutable copy of records to apply onset analysis
+    let mut records_copy: Vec<HanziRecord> = records.to_vec();
+
+    // Apply onset analysis
+    set_hanzi_onsets(&mut records_copy);
+
+    // Filter records by the target onset
+    let filtered_records: Vec<&HanziRecord> = records_copy
+        .iter()
+        .filter(|record| record.onset == *target_onset)
+        .collect();
+
+    if filtered_records.is_empty() {
+        return None;
+    }
+
+    // Group by pinyin_without_tone
+    let mut pinyin_groups: HashMap<&str, Vec<&str>> = HashMap::new();
+    for record in filtered_records {
+        let character = if use_traditional {
+            &record.traditional
+        } else {
+            &record.simplified
+        };
+        pinyin_groups
+            .entry(&record.pinyin_without_tone)
+            .or_default()
+            .push(character);
+    }
+
+    // Convert to vector and sort
+    let mut result: Vec<(String, Vec<String>)> = pinyin_groups
+        .into_iter()
+        .map(|(pinyin, chars)| {
+            let mut chars: Vec<String> = chars.into_iter().map(|s| s.to_string()).collect();
+            chars.sort();
+            chars.dedup(); // Remove duplicates
+            (pinyin.to_string(), chars)
+        })
+        .collect();
+
+    // Sort by character count (descending) then by pinyin (ascending)
+    result.sort_by(|a, b| match b.1.len().cmp(&a.1.len()) {
+        std::cmp::Ordering::Equal => a.0.cmp(&b.0),
+        other => other,
+    });
+
+    Some(result)
+}
+
+/// Formats onset-pinyin grouping data for display with optional line folding
+///
+/// Takes grouped onset-pinyin data and formats it for display. Each line shows the pinyin
+/// followed by the count and the characters with that pinyin for the specific onset.
+/// Uses the same alignment format as `format_pinyin_output` for consistency.
+///
+/// # Arguments
+///
+/// * `pinyin_groups` - A slice of tuples containing pinyin grouping data where each tuple has:
+///   - String: The pinyin without tone marks (e.g., "ji", "ma")
+///   - Vec<String>: The vector of characters with that pinyin
+/// * `fold_size` - Optional width for line folding. If provided, long character lists
+///   will be folded to this width with continuation lines
+///
+/// # Returns
+///
+/// A vector of formatted strings ready for display, one per pinyin group
+///
+/// # Output Format
+///
+/// Without folding:
+/// ```text
+/// pinyin  : count characters_here
+/// ```
+///
+/// With folding (fold_size = 10):
+/// ```text
+/// pinyin  : count first_10_ch
+///                 next_chars
+/// ```
+///
+/// # Formatting Details
+///
+/// - Pinyin is left-aligned in an 8-character field
+/// - Character count is right-aligned in a 3-character field
+/// - Continuation lines are indented with 14 spaces to align with characters
+///
+/// # Examples
+///
+/// ```rust
+/// # use study_rust_hanzi::format_onset_pinyin_output;
+/// let pinyin_data = vec![
+///     ("ji".to_string(), vec!["机".to_string(), "计".to_string(), "基".to_string()]),
+///     ("jia".to_string(), vec!["家".to_string(), "加".to_string()]),
+/// ];
+/// let output = format_onset_pinyin_output(&pinyin_data, None);
+/// assert_eq!(output[0], "ji      :   3 机计基");
+/// assert_eq!(output[1], "jia     :   2 家加");
+/// ```
+pub fn format_onset_pinyin_output(
+    pinyin_groups: &[(String, Vec<String>)],
+    fold_size: Option<usize>,
+) -> Vec<String> {
+    let mut output_lines = Vec::new();
+
+    for (pinyin, characters) in pinyin_groups {
+        let char_list = characters.join("");
+
+        if let Some(fold_size) = fold_size {
+            if char_list.len() > fold_size {
+                // Fold long lines: first fold_size chars on the same line as count
+                let chars: Vec<char> = char_list.chars().collect();
+                let first_chunk: String = chars.iter().take(fold_size).collect();
+
+                output_lines.push(format!(
+                    "{:<8}: {:3} {}",
+                    pinyin,
+                    characters.len(),
+                    first_chunk
+                ));
+
+                // Remaining characters in chunks of fold_size
+                for chunk in chars
+                    .iter()
+                    .skip(fold_size)
+                    .collect::<Vec<_>>()
+                    .chunks(fold_size)
+                {
+                    let chunk_str: String = chunk.iter().map(|c| **c).collect();
+                    output_lines.push(format!("              {chunk_str}"));
+                }
+            } else {
+                output_lines.push(format!(
+                    "{:<8}: {:3} {}",
+                    pinyin,
+                    characters.len(),
+                    char_list
+                ));
+            }
+        } else {
+            output_lines.push(format!(
+                "{:<8}: {:3} {}",
+                pinyin,
+                characters.len(),
+                char_list
+            ));
+        }
+    }
+
+    output_lines
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -727,5 +923,77 @@ mod tests {
         } else {
             panic!("group_by_onset should return Some for non-empty records");
         }
+    }
+
+    #[test]
+    fn test_group_by_onset_and_pinyin() {
+        let records = create_test_records();
+        let result = group_by_onset_and_pinyin(&records, &HanziOnset::J, false);
+
+        assert!(result.is_some());
+        let grouped = result.unwrap();
+
+        // Should group by pinyin without tone, for onset J
+        assert_eq!(grouped.len(), 1);
+        assert_eq!(grouped[0].0, "ji");
+        assert_eq!(grouped[0].1, vec!["机", "计"]);
+    }
+
+    #[test]
+    fn test_group_by_onset_and_pinyin_empty() {
+        let records: Vec<HanziRecord> = vec![];
+        let result = group_by_onset_and_pinyin(&records, &HanziOnset::J, false);
+
+        assert!(result.is_none());
+    }
+
+    #[test]
+    fn test_format_onset_pinyin_output() {
+        let test_data = vec![
+            ("ji".to_string(), vec!["机".to_string(), "计".to_string()]),
+            ("ma".to_string(), vec!["马".to_string()]),
+        ];
+
+        let output = format_onset_pinyin_output(&test_data, None);
+
+        assert_eq!(output.len(), 2);
+        assert_eq!(output[0], "ji      :   2 机计");
+        assert_eq!(output[1], "ma      :   1 马");
+    }
+
+    #[test]
+    fn test_format_onset_pinyin_output_empty() {
+        let test_data: Vec<(String, Vec<String>)> = vec![];
+        let output = format_onset_pinyin_output(&test_data, None);
+
+        assert!(output.is_empty());
+    }
+
+    #[test]
+    fn test_format_onset_pinyin_output_with_fold() {
+        let test_data = vec![(
+            "test".to_string(),
+            vec![
+                "一".to_string(),
+                "二".to_string(),
+                "三".to_string(),
+                "四".to_string(),
+                "五".to_string(),
+            ],
+        )];
+
+        let output = format_onset_pinyin_output(&test_data, Some(3));
+
+        // fold_size is 3, so first line should have 3 characters, remaining on next line
+        assert!(
+            output.len() >= 2,
+            "Should have at least 2 lines when folding"
+        );
+        assert!(output[0].contains("test"));
+        assert!(output[0].contains("5")); // character count
+        assert!(
+            !output[1].trim().is_empty(),
+            "Second line should contain remaining characters"
+        );
     }
 }

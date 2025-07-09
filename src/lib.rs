@@ -36,8 +36,8 @@ pub use crate::io::read_hanzi_file;
 
 // Re-export the grouping module functions for backward compatibility
 pub use crate::grouping::{
-    format_onset_output, format_pinyin_output, format_tone_output, group_by_onset, group_by_pinyin,
-    group_by_tone,
+    format_onset_output, format_onset_pinyin_output, format_pinyin_output, format_tone_output,
+    group_by_onset, group_by_onset_and_pinyin, group_by_pinyin, group_by_tone,
 };
 
 // Re-export the analysis module functions for backward compatibility
