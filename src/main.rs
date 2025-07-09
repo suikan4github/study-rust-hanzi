@@ -6,40 +6,39 @@
 //!
 //! ## Features
 //!
-//! - **by-pinyin**: Groups characters by their pinyin pronunciation (without tone marks)
-//! - **by-tone**: Filters characters by specific pinyin and displays them grouped by tone
-//! - **by-onset**: Groups characters by onset (initial consonant) sounds and shows counts, or filters by specific onset to show pinyin groupings
+//! - **pinyin**: Groups characters by their pinyin pronunciation (without tone marks)
+//! - **onset**: Groups characters by onset (initial consonant) sounds and shows counts, or filters by specific onset to show pinyin groupings
 //! - **generate-completion**: Creates shell completion scripts for better CLI experience
 //!
 //! ## Examples
 //!
 //! ```bash
 //! # List all characters grouped by pinyin with character count
-//! study-rust-hanzi by-pinyin
+//! study-rust-hanzi pinyin
 //!
 //! # List characters with line folding at 30 characters
-//! study-rust-hanzi by-pinyin --fold 30
+//! study-rust-hanzi pinyin --fold 30
 //!
 //! # Show traditional characters instead of simplified
-//! study-rust-hanzi by-pinyin --traditional
+//! study-rust-hanzi pinyin --traditional
 //!
 //! # Show all characters with pinyin "ma" grouped by tone
-//! study-rust-hanzi by-tone ma
+//! study-rust-hanzi pinyin ma
 //!
 //! # Show traditional characters for pinyin "nv" (converted to "nü")
-//! study-rust-hanzi by-tone nv --traditional
+//! study-rust-hanzi pinyin nv --traditional
 //!
 //! # Show character counts grouped by onset sounds
-//! study-rust-hanzi by-onset
+//! study-rust-hanzi onset
 //!
 //! # Show characters grouped by pinyin for onset 'j'
-//! study-rust-hanzi by-onset j
+//! study-rust-hanzi onset j
 //!
 //! # Show characters for 'none' onset (vowel-initial syllables)
-//! study-rust-hanzi by-onset none
+//! study-rust-hanzi onset none
 //!
 //! # Show characters for onset 'j' with line folding at 30 characters
-//! study-rust-hanzi by-onset j --fold 30
+//! study-rust-hanzi onset j --fold 30
 //!
 //! # Generate bash completion script
 //! study-rust-hanzi generate-completion bash > completion.bash
@@ -83,19 +82,19 @@ struct Args {
 #[derive(Subcommand)]
 enum Commands {
     /// List unique pinyin with frequency and characters
-    ByPinyin {
+    Pinyin {
+        /// The pinyin (without tone marks) to search for. Use 'v' for 'ü' (e.g., 'nv' for 'nü')
+        /// Optional pinyin to filter results ( e.g. "ma" to show only characters with that pinyin)
+        pinyin: Option<String>,
         /// Fold long lines when character count exceeds specified value (default: 50)
         #[arg(short, long, value_name = "WIDTH", default_missing_value = "50", num_args = 0..=1)]
         fold: Option<usize>,
         /// Use traditional characters instead of simplified
         #[arg(short, long)]
         traditional: bool,
-        /// The pinyin (without tone marks) to search for. Use 'v' for 'ü' (e.g., 'nv' for 'nü')
-        /// Optional pinyin to filter results ( e.g. "ma" to show only characters with that pinyin)
-        pinyin: Option<String>,
     },
     /// Show character counts grouped by onset (initial consonant) sounds
-    ByOnset {
+    Onset {
         /// Optional onset to filter by (e.g., 'j', 'zh', 'none'). If provided, groups characters by pinyin within that onset
         onset: Option<String>,
         /// Fold long lines when character count exceeds specified value (default: 50)
@@ -294,12 +293,11 @@ fn process_by_onset(onset_filter: Option<&str>, fold_size: Option<usize>, use_tr
 /// Main entry point for the Hanzi learning program
 ///
 /// This function parses command-line arguments and dispatches to the appropriate
-/// handler function based on the selected subcommand. It supports four main operations:
+/// handler function based on the selected subcommand. It supports three main operations:
 ///
-/// 1. **by-pinyin**: Groups and displays characters by pinyin pronunciation
-/// 2. **by-tone**: Filters characters by specific pinyin and groups by tone
-/// 3. **by-onset**: Groups and counts characters by onset (initial consonant) sounds
-/// 4. **generate-completion**: Creates shell completion scripts
+/// 1. **pinyin**: Groups and displays characters by pinyin pronunciation
+/// 2. **onset**: Groups and counts characters by onset (initial consonant) sounds
+/// 3. **generate-completion**: Creates shell completion scripts
 ///
 /// The function uses the clap crate for argument parsing and provides comprehensive
 /// help messages and validation for all commands and options.
@@ -307,7 +305,7 @@ fn main() {
     let args = Args::parse();
 
     match args.command {
-        Commands::ByPinyin {
+        Commands::Pinyin {
             fold,
             traditional,
             pinyin,
@@ -323,7 +321,7 @@ fn main() {
                 }
             }
         }
-        Commands::ByOnset {
+        Commands::Onset {
             onset,
             fold,
             traditional,
