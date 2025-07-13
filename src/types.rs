@@ -176,6 +176,7 @@ impl FromStr for HanziOnset {
 pub enum HanziRime {
     E,
     A,
+    O,
     Ei,
     Ai,
     Ou,
@@ -185,6 +186,7 @@ pub enum HanziRime {
     Ong,
     Eng,
     Ang,
+    Er,
     I,
     Ie,
     Ia,
@@ -205,6 +207,7 @@ pub enum HanziRime {
     Uang,
     V,
     Ve,
+    Ue,
     None,
 }
 
@@ -223,17 +226,20 @@ impl HanziRime {
     ///
     /// ```
     /// use study_rust_hanzi::HanziRime;
-    ///
-    /// assert_eq!(HanziRime::A.as_str(), "a");
+    ///     /// assert_eq!(HanziRime::A.as_str(), "a");
+    /// assert_eq!(HanziRime::O.as_str(), "o");
     /// assert_eq!(HanziRime::Ang.as_str(), "ang");
+    /// assert_eq!(HanziRime::Er.as_str(), "er");
     /// assert_eq!(HanziRime::V.as_str(), "ü");
     /// assert_eq!(HanziRime::Ve.as_str(), "üe");
+    /// assert_eq!(HanziRime::Ue.as_str(), "ue");
     /// assert_eq!(HanziRime::None.as_str(), "none");
     /// ```
     pub fn as_str(&self) -> &'static str {
         match self {
             HanziRime::E => "e",
             HanziRime::A => "a",
+            HanziRime::O => "o",
             HanziRime::Ei => "ei",
             HanziRime::Ai => "ai",
             HanziRime::Ou => "ou",
@@ -243,6 +249,7 @@ impl HanziRime {
             HanziRime::Ong => "ong",
             HanziRime::Eng => "eng",
             HanziRime::Ang => "ang",
+            HanziRime::Er => "er",
             HanziRime::I => "i",
             HanziRime::Ie => "ie",
             HanziRime::Ia => "ia",
@@ -263,6 +270,7 @@ impl HanziRime {
             HanziRime::Uang => "uang",
             HanziRime::V => "ü",
             HanziRime::Ve => "üe",
+            HanziRime::Ue => "ue",
             HanziRime::None => "none",
         }
     }
@@ -291,11 +299,13 @@ impl FromStr for HanziRime {
     /// ```
     /// use std::str::FromStr;
     /// use study_rust_hanzi::HanziRime;
-    ///
-    /// assert_eq!(HanziRime::from_str("a"), Ok(HanziRime::A));
+    ///     /// assert_eq!(HanziRime::from_str("a"), Ok(HanziRime::A));
+    /// assert_eq!(HanziRime::from_str("o"), Ok(HanziRime::O));
     /// assert_eq!(HanziRime::from_str("ang"), Ok(HanziRime::Ang));
+    /// assert_eq!(HanziRime::from_str("er"), Ok(HanziRime::Er));
     /// assert_eq!(HanziRime::from_str("ü"), Ok(HanziRime::V));
     /// assert_eq!(HanziRime::from_str("üe"), Ok(HanziRime::Ve));
+    /// assert_eq!(HanziRime::from_str("ue"), Ok(HanziRime::Ue));
     /// assert_eq!(HanziRime::from_str("none"), Ok(HanziRime::None));
     /// assert!(HanziRime::from_str("invalid").is_err());
     /// ```
@@ -303,6 +313,7 @@ impl FromStr for HanziRime {
         match s.to_lowercase().as_str() {
             "e" => Ok(HanziRime::E),
             "a" => Ok(HanziRime::A),
+            "o" => Ok(HanziRime::O),
             "ei" => Ok(HanziRime::Ei),
             "ai" => Ok(HanziRime::Ai),
             "ou" => Ok(HanziRime::Ou),
@@ -312,6 +323,7 @@ impl FromStr for HanziRime {
             "ong" => Ok(HanziRime::Ong),
             "eng" => Ok(HanziRime::Eng),
             "ang" => Ok(HanziRime::Ang),
+            "er" => Ok(HanziRime::Er),
             "i" => Ok(HanziRime::I),
             "ie" => Ok(HanziRime::Ie),
             "ia" => Ok(HanziRime::Ia),
@@ -332,6 +344,7 @@ impl FromStr for HanziRime {
             "uang" => Ok(HanziRime::Uang),
             "ü" => Ok(HanziRime::V),
             "üe" => Ok(HanziRime::Ve),
+            "ue" => Ok(HanziRime::Ue),
             "v" => Ok(HanziRime::V),   // Alternative representation for ü
             "ve" => Ok(HanziRime::Ve), // Alternative representation for üe
             "none" => Ok(HanziRime::None),
@@ -441,6 +454,7 @@ mod tests {
         // Test simple vowel rimes
         assert_eq!(HanziRime::E.as_str(), "e");
         assert_eq!(HanziRime::A.as_str(), "a");
+        assert_eq!(HanziRime::O.as_str(), "o");
         assert_eq!(HanziRime::I.as_str(), "i");
         assert_eq!(HanziRime::U.as_str(), "u");
 
@@ -456,6 +470,7 @@ mod tests {
         assert_eq!(HanziRime::Eng.as_str(), "eng");
         assert_eq!(HanziRime::Ang.as_str(), "ang");
         assert_eq!(HanziRime::Ong.as_str(), "ong");
+        assert_eq!(HanziRime::Er.as_str(), "er");
 
         // Test complex compound rimes
         assert_eq!(HanziRime::Ie.as_str(), "ie");
@@ -480,6 +495,7 @@ mod tests {
         // Test special ü rimes
         assert_eq!(HanziRime::V.as_str(), "ü");
         assert_eq!(HanziRime::Ve.as_str(), "üe");
+        assert_eq!(HanziRime::Ue.as_str(), "ue");
 
         // Test None case
         assert_eq!(HanziRime::None.as_str(), "none");
@@ -490,6 +506,7 @@ mod tests {
         // Test valid simple vowel rimes
         assert_eq!(HanziRime::from_str("e"), Ok(HanziRime::E));
         assert_eq!(HanziRime::from_str("a"), Ok(HanziRime::A));
+        assert_eq!(HanziRime::from_str("o"), Ok(HanziRime::O));
         assert_eq!(HanziRime::from_str("i"), Ok(HanziRime::I));
         assert_eq!(HanziRime::from_str("u"), Ok(HanziRime::U));
 
@@ -505,6 +522,7 @@ mod tests {
         assert_eq!(HanziRime::from_str("eng"), Ok(HanziRime::Eng));
         assert_eq!(HanziRime::from_str("ang"), Ok(HanziRime::Ang));
         assert_eq!(HanziRime::from_str("ong"), Ok(HanziRime::Ong));
+        assert_eq!(HanziRime::from_str("er"), Ok(HanziRime::Er));
 
         // Test valid complex compound rimes
         assert_eq!(HanziRime::from_str("ie"), Ok(HanziRime::Ie));
@@ -531,6 +549,7 @@ mod tests {
         assert_eq!(HanziRime::from_str("v"), Ok(HanziRime::V));
         assert_eq!(HanziRime::from_str("üe"), Ok(HanziRime::Ve));
         assert_eq!(HanziRime::from_str("ve"), Ok(HanziRime::Ve));
+        assert_eq!(HanziRime::from_str("ue"), Ok(HanziRime::Ue));
 
         // Test case insensitivity
         assert_eq!(HanziRime::from_str("ANG"), Ok(HanziRime::Ang));

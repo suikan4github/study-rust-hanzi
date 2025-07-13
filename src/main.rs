@@ -56,7 +56,7 @@ use std::io::{self, Write};
 use study_rust_hanzi::{
     format_onset_output, format_onset_pinyin_output, format_pinyin_output, format_tone_output,
     group_by_onset, group_by_onset_and_pinyin, group_by_pinyin, group_by_tone, read_hanzi_file,
-    HanziOnset,
+    set_hanzi_onsets, set_hanzi_rime, HanziOnset,
 };
 
 /// Hanzi learning program
@@ -104,6 +104,8 @@ enum Commands {
         #[arg(short, long)]
         traditional: bool,
     },
+    /// Convert hanzi.tsv to hanzi_2.tsv
+    Convert,
     /// Generate shell completion scripts
     GenerateCompletion {
         /// The shell to generate completion script for
@@ -290,6 +292,58 @@ fn process_by_onset(onset_filter: Option<&str>, fold_size: Option<usize>, use_tr
     }
 }
 
+/// Convert the hanzi.tsv file to a new format hanzi_2.tsv.
+///
+/// This function reads the original hanzi.tsv and create a new file name hanzi_2.tsv.
+/// The field information of the both files are explained in the HANZI_TSV_FORMAT.md.
+///
+/// The first 6 fields of the hanzi.tsv file are copied to the hanzi_2.tsv file.
+/// Additional fields such as onset and rime are obtained by the functions in the analysis module.
+///
+/// # Behavior
+/// 1. Reads the original hanzi.tsv file by the `read_hanzi_file` function.
+/// 2. Analyzes the onset and rime of each character using `set_hanzi_onsets` and `set_hanzi_rime`.
+/// 3. Writes the new hanzi_2.tsv file with the additional onset and rime fields.
+fn convert_file() {
+    match read_hanzi_file("hanzi.tsv") {
+        Ok(mut records) => {
+            // Analyze and set onset and rime for each record
+            set_hanzi_onsets(&mut records);
+            set_hanzi_rime(&mut records);
+
+            // Create the new file hanzi_2.tsv
+            let mut file =
+                std::fs::File::create("hanzi_2.tsv").expect("Failed to create hanzi_2.tsv");
+
+            for record in records {
+                let onset_str = if record.onset.as_str() == "none" {
+                    ""
+                } else {
+                    record.onset.as_str()
+                };
+
+                writeln!(
+                    file,
+                    "{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}",
+                    record.frequency,
+                    record.simplified,
+                    record.traditional,
+                    record.pinyin,
+                    record.pinyin_without_tone,
+                    record.tone,
+                    onset_str,
+                    record.rime.as_str()
+                )
+                .expect("Failed to write to hanzi_2.tsv");
+            }
+        }
+        Err(e) => {
+            eprintln!("Error reading hanzi.tsv: {e}");
+            std::process::exit(1);
+        }
+    }
+}
+
 /// Main entry point for the Hanzi learning program
 ///
 /// This function parses command-line arguments and dispatches to the appropriate
@@ -327,6 +381,9 @@ fn main() {
             traditional,
         } => {
             process_by_onset(onset.as_deref(), fold, traditional);
+        }
+        Commands::Convert => {
+            convert_file();
         }
         Commands::GenerateCompletion { shell } => {
             let mut cmd = Args::command();
