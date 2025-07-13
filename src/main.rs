@@ -321,7 +321,7 @@ fn convert_file() {
                 } else {
                     record.onset.as_str()
                 };
-                
+
                 writeln!(
                     file,
                     "{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}",

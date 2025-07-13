@@ -227,10 +227,10 @@ impl HanziRime {
     /// ```
     /// use study_rust_hanzi::HanziRime;
     ///     /// assert_eq!(HanziRime::A.as_str(), "a");
-     /// assert_eq!(HanziRime::O.as_str(), "o");
-     /// assert_eq!(HanziRime::Ang.as_str(), "ang");
-     /// assert_eq!(HanziRime::Er.as_str(), "er");
-     /// assert_eq!(HanziRime::V.as_str(), "ü");
+    /// assert_eq!(HanziRime::O.as_str(), "o");
+    /// assert_eq!(HanziRime::Ang.as_str(), "ang");
+    /// assert_eq!(HanziRime::Er.as_str(), "er");
+    /// assert_eq!(HanziRime::V.as_str(), "ü");
     /// assert_eq!(HanziRime::Ve.as_str(), "üe");
     /// assert_eq!(HanziRime::Ue.as_str(), "ue");
     /// assert_eq!(HanziRime::None.as_str(), "none");
@@ -300,10 +300,10 @@ impl FromStr for HanziRime {
     /// use std::str::FromStr;
     /// use study_rust_hanzi::HanziRime;
     ///     /// assert_eq!(HanziRime::from_str("a"), Ok(HanziRime::A));
-     /// assert_eq!(HanziRime::from_str("o"), Ok(HanziRime::O));
-     /// assert_eq!(HanziRime::from_str("ang"), Ok(HanziRime::Ang));
-     /// assert_eq!(HanziRime::from_str("er"), Ok(HanziRime::Er));
-     /// assert_eq!(HanziRime::from_str("ü"), Ok(HanziRime::V));
+    /// assert_eq!(HanziRime::from_str("o"), Ok(HanziRime::O));
+    /// assert_eq!(HanziRime::from_str("ang"), Ok(HanziRime::Ang));
+    /// assert_eq!(HanziRime::from_str("er"), Ok(HanziRime::Er));
+    /// assert_eq!(HanziRime::from_str("ü"), Ok(HanziRime::V));
     /// assert_eq!(HanziRime::from_str("üe"), Ok(HanziRime::Ve));
     /// assert_eq!(HanziRime::from_str("ue"), Ok(HanziRime::Ue));
     /// assert_eq!(HanziRime::from_str("none"), Ok(HanziRime::None));
