@@ -292,6 +292,7 @@ fn process_by_onset(onset_filter: Option<&str>, fold_size: Option<usize>, use_tr
     }
 }
 
+
 /// Convert the hanzi.tsv file to a new format hanzi_2.tsv.
 ///
 /// This function reads the original hanzi.tsv and create a new file name hanzi_2.tsv.
@@ -343,6 +344,7 @@ fn convert_file() {
         }
     }
 }
+
 
 /// Main entry point for the Hanzi learning program
 ///
