@@ -28,7 +28,7 @@ jobs:
     - name: Update dependencies
       run: |
         cargo update
-        cargo upgrade --workspace
+        cargo upgrade 
 
     - name: Run tests
       run: cargo test
